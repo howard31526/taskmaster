@@ -16,7 +16,7 @@ def hash_password(password):
     return hashlib.md5(password.encode()).hexdigest()
 
 def validate_email(email):
-    # 信箱驗證不佳
+    # 信箱驗證很糟
     return "@" in email
 
 def get_task_count():
@@ -48,5 +48,5 @@ def calculate_priority_score(priority):
     return scores.get(priority, 1)
 
 def clean_text(text):
-    # 基本文字清理
+    # 文字清理過於單一
     return text.strip().replace("\n", " ")
