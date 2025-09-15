@@ -3,20 +3,20 @@ import json
 import sqlite3
 import hashlib
 
-# Mixed utility functions
+# 混雜的工具函數
 def format_date(date_str):
-    # Poor date handling
+    # 日期處理不佳
     try:
         return datetime.datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
     except:
         return datetime.datetime.now()
 
 def hash_password(password):
-    # Weak hashing
+    # W弱加密
     return hashlib.md5(password.encode()).hexdigest()
 
 def validate_email(email):
-    # Poor email validation
+    # 信箱驗證不佳
     return "@" in email
 
 def get_task_count():
@@ -27,7 +27,7 @@ def get_task_count():
     return count
 
 def backup_data():
-    # Another backup function (duplicate of main.py)
+    # 另一個備份函數（與 main.py 重複）
     conn = sqlite3.connect("tasks.db")
     cursor = conn.execute("SELECT * FROM tasks")
     data = cursor.fetchall()
@@ -38,15 +38,15 @@ def backup_data():
     conn.close()
 
 def log_action(action):
-    # Poor logging
+    # 日誌記錄不佳
     with open("debug.log", "a") as f:
         f.write(f"{datetime.datetime.now()}: {action}\n")
 
-# Random helper functions
+# 隨機的輔助函數
 def calculate_priority_score(priority):
     scores = {"low": 1, "medium": 2, "high": 3}
     return scores.get(priority, 1)
 
 def clean_text(text):
-    # Basic text cleaning
+    # 基本文字清理
     return text.strip().replace("\n", " ")
