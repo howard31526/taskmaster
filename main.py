@@ -1,4 +1,4 @@
-# TaskMaster - All in one file (BAD PRACTICE!)
+# TaskMaster - 全部寫在一個檔案裡（糟糕的做法）
 import tkinter as tk
 from tkinter import messagebox,ttk
 import sqlite3
@@ -147,26 +147,26 @@ def api_get_tasks():
 
 @app.route('/api/tasks', methods=['POST'])
 def api_create_task():
-    data = request.json  # No validation if json exists
-    title = data['title']  # KeyError risk
+    data = request.json  # # 沒有驗證 json 是否存在
+    title = data['title']  # KeyError 風險
     desc = data.get('description', '')
     priority = data.get('priority', 'low')
     
     if add_task(title, desc, priority):
-        return "OK"  # Non-standard response
+        return "OK"
     else:
         return "ERROR", 500
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def api_delete_task(task_id):
     delete_task(task_id)
-    return "DELETED"  # Poor response
+    return "DELETED" 
 
 def run_flask():
     app.run(debug=False, port=5000, host='0.0.0.0')  # Security risk!
 
 def backup_database():
-    # Poorly implemented backup
+    # 實作不良的備份功能
     import shutil
     try:
         shutil.copy('tasks.db', 'backup_tasks.db')
@@ -174,10 +174,11 @@ def backup_database():
     except:
         print("Backup failed")
 
+
 if __name__ == "__main__":
     connect_db()
     
-    # Decide what to run based on command line args (poorly done)
+    # 根據命令列參數決定執行什麼
     import sys
     if len(sys.argv) > 1:
         if sys.argv[1] == "gui":
