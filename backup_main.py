@@ -1,15 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
 # Backup of main.py before refactoring
 # TODO: Remove this file after confirming new version works
 
@@ -30,14 +20,5 @@ class OldGUI:
 # Keep this for reference
 
 
-
-
-
-
-
-
-
-
-
-#   B a c k u p   p o i n t  
+# Backup point  
  
