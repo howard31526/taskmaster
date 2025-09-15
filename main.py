@@ -56,14 +56,14 @@ def get_tasks():
     conn.close()
     return tasks
 
-def update_task(task_id,status):
+def update_task(task_id, status):
     conn = sqlite3.connect('tasks.db')
     # 同時修復 SQL 注入問題
     conn.execute("UPDATE tasks SET status=? WHERE id=?", (status, task_id))
     conn.commit()
     conn.close()
 
-def delete_task(id):
+def delete_task(task_id):
     conn = sqlite3.connect('tasks.db')
     # 修復 SQL 注入問題
     conn.execute("DELETE FROM tasks WHERE id=?", (task_id,))
