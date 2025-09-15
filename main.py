@@ -37,33 +37,38 @@ class Task:
         self.created_at=str(datetime.datetime.now())  # String instead of datetime
 
 def add_task(title,description,priority="low"):
-    global db_connection
-    # No input validation!
-    query="INSERT INTO tasks (title,description,priority,status,created_at) VALUES (?,?,?,?,?)"
     try:
-        db_connection.execute(query,(title,description,priority,"pending",str(datetime.datetime.now())))
-        db_connection.commit()
+        conn = sqlite3.connect('tasks.db')
+        conn.execute("INSERT INTO tasks (title,description,priority,status,created_at) VALUES (?,?,?,?,?)",
+                    (title, description, priority, "pending", str(datetime.datetime.now())))
+        conn.commit()
+        conn.close()
         return True
     except Exception as e:
-        print(f"Error: {e}")  # Poor error handling
+        print(f"Error: {e}")
         return False
 
 def get_tasks():
-    global db_connection
-    cursor=db_connection.execute("SELECT * FROM tasks")  # No error handling
-    return cursor.fetchall()
+    # 每次建立新連線
+    conn = sqlite3.connect('tasks.db')
+    cursor = conn.execute("SELECT * FROM tasks")
+    tasks = cursor.fetchall()
+    conn.close()
+    return tasks
 
 def update_task(task_id,status):
-    global db_connection
-    query=f"UPDATE tasks SET status='{status}' WHERE id={task_id}"  # SQL injection risk!
-    db_connection.execute(query)
-    db_connection.commit()
+    conn = sqlite3.connect('tasks.db')
+    # 同時修復 SQL 注入問題
+    conn.execute("UPDATE tasks SET status=? WHERE id=?", (status, task_id))
+    conn.commit()
+    conn.close()
 
 def delete_task(id):
-    global db_connection
-    query=f"DELETE FROM tasks WHERE id={id}"  # More SQL injection!
-    db_connection.execute(query)
-    db_connection.commit()
+    conn = sqlite3.connect('tasks.db')
+    # 修復 SQL 注入問題
+    conn.execute("DELETE FROM tasks WHERE id=?", (task_id,))
+    conn.commit()
+    conn.close()
 
 # GUI Code mixed with business logic
 class TaskGUI:
