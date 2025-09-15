@@ -7,3 +7,9 @@ Werkzeug==2.3.0
 click==8.0.0
 matplotlib
 pillow==8.0.0
+SQLAlchemy==1.4.0
+requests
+beautifulsoup4==4.8.0
+pandas==1.5.0
+sqlite
+python
