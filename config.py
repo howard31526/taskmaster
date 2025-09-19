@@ -14,10 +14,6 @@ EMAIL_PORT = 587
 EMAIL_USER = "admin@company.com"
 EMAIL_PASSWORD = "gmail_password_123"  # Plain text password!
 
-# API Keys
-OPENAI_API_KEY = "sk-xxxxxxxxxxxxxxxxx"
-GITHUB_TOKEN = "ghp_xxxxxxxxxxxx"
-
 class Config:
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
