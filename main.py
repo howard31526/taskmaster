@@ -4,14 +4,12 @@ from tkinter import messagebox,ttk
 import sqlite3
 import datetime
 import json
-from flask import Flask,request,jsonify
 import threading
 import requests
 import os
 
 # Global variables everywhere (BAD!)
 db_connection = None
-app = Flask(__name__)
 window = None
 current_user = "admin"
 DEBUG_MODE = True
@@ -138,32 +136,10 @@ class TaskGUI:
     def run(self):
         self.window.mainloop()
 
-# Flask API mixed in the same file
-@app.route('/api/tasks', methods=['GET'])
-def api_get_tasks():
-    tasks = get_tasks()
-    # Poor JSON response structure
-    return jsonify(tasks)
-
-@app.route('/api/tasks', methods=['POST'])
-def api_create_task():
-    data = request.json  # # 沒有驗證 json 是否存在
-    title = data['title']  # KeyError 風險
-    desc = data.get('description', '')
-    priority = data.get('priority', 'low')
-    
-    if add_task(title, desc, priority):
-        return "OK"
-    else:
-        return "ERROR", 500
-
-@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
-def api_delete_task(task_id):
-    delete_task(task_id)
-    return "DELETED" 
-
-def run_flask():
-    app.run(debug=False, port=5000, host='0.0.0.0')  # Security risk!
+def run_web_server():
+    # 使用重構後的 Web 模組
+    from api_server import run_web_server
+    run_web_server()
 
 def backup_database():
     # 實作不良的備份功能
@@ -184,9 +160,9 @@ if __name__ == "__main__":
         if sys.argv[1] == "gui":
             gui = TaskGUI()
             gui.run()
-        elif sys.argv[1] == "api":
-            run_flask()
+        elif sys.argv[1] == "web":
+            run_web_server()
         elif sys.argv[1] == "backup":
             backup_database()
     else:
-        print("Usage: python main.py [gui|api|backup]")
+        print("Usage: python main.py [gui|web|backup]")

@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}TaskMaster - 任務管理儀表板{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2 me-2"></i>任務管理儀表板
+        </h1>
+    </div>
+</div>
+
+<!-- 統計卡片 -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card total">
+            <div class="stats-icon">
+                <i class="bi bi-list-task"></i>
+            </div>
+            <div class="stats-number">{{ stats.total }}</div>
+            <div class="stats-label">總任務</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card pending">
+            <div class="stats-icon">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="stats-number">{{ stats.pending }}</div>
+            <div class="stats-label">待辦</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card in-progress">
+            <div class="stats-icon">
+                <i class="bi bi-arrow-clockwise"></i>
+            </div>
+            <div class="stats-number">{{ stats.in_progress }}</div>
+            <div class="stats-label">進行中</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="stats-card completed">
+            <div class="stats-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stats-number">{{ stats.completed }}</div>
+            <div class="stats-label">已完成</div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增任務表單 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="form-section" id="create-task">
+            <h3>
+                <i class="bi bi-plus-circle me-2"></i>新增任務
+            </h3>
+            <form id="createTaskForm" method="POST" action="{{ url_for('create_task') }}">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="title" class="form-label">任務標題 *</label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="請輸入任務標題">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="priority" class="form-label">優先級</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="low">低</option>
+                            <option value="medium" selected>中</option>
+                            <option value="high">高</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5 mb-3">
+                        <label for="description" class="form-label">任務描述</label>
+                        <textarea class="form-control" id="description" name="description" rows="1" placeholder="請輸入任務描述（可選）"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>新增任務
+                        </button>
+                        <button type="reset" class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-arrow-clockwise me-1"></i>重設整理
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 任務篩選 -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h3>
+            <i class="bi bi-list-ul me-2"></i>任務列表
+        </h3>
+    </div>
+    <div class="col-md-6">
+        <div class="d-flex justify-content-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterTasks('all')">
+                    套用篩選
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> 重新整理
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 任務列表 -->
+<div class="row">
+    <div class="col-12">
+        {% if tasks %}
+            <div class="card task-card">
+                <div class="task-list-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-1"><strong>ID</strong></div>
+                        <div class="col-md-3"><strong>標題</strong></div>
+                        <div class="col-md-3"><strong>描述</strong></div>
+                        <div class="col-md-2"><strong>優先級</strong></div>
+                        <div class="col-md-1"><strong>狀態</strong></div>
+                        <div class="col-md-2"><strong>操作</strong></div>
+                    </div>
+                </div>
+
+                {% for task in tasks %}
+                <div class="task-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <span class="badge bg-secondary">{{ task[0] }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <strong>{{ task[1] }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">
+                                {{ task[2][:50] + '...' if task[2]|length > 50 else task[2] or '-' }}
+                            </small>
+                        </div>
+                        <div class="col-md-2">
+                            <span class="priority-badge priority-{{ task[3] }}">
+                                {% if task[3] == 'high' %}高
+                                {% elif task[3] == 'medium' %}中
+                                {% else %}低{% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-1">
+                            <span class="status-badge status-{{ task[4] }}">
+                                {% if task[4] == 'pending' %}待辦
+                                {% elif task[4] == 'in_progress' %}進行中
+                                {% else %}已完成{% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <!-- 狀態更新表單 -->
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary dropdown-toggle btn-action" type="button"
+                                            data-bs-toggle="dropdown" data-bs-toggle="tooltip" title="更新狀態">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        {% if task[4] != 'pending' %}
+                                        <li>
+                                            <form method="POST" action="{{ url_for('update_task', task_id=task[0]) }}" class="d-inline">
+                                                <input type="hidden" name="status" value="pending">
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-clock me-1"></i>待辦
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                        {% if task[4] != 'in_progress' %}
+                                        <li>
+                                            <form method="POST" action="{{ url_for('update_task', task_id=task[0]) }}" class="d-inline">
+                                                <input type="hidden" name="status" value="in_progress">
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>進行中
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                        {% if task[4] != 'completed' %}
+                                        <li>
+                                            <form method="POST" action="{{ url_for('update_task', task_id=task[0]) }}" class="d-inline">
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-check-circle me-1"></i>已完成
+                                                </button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+
+                                <!-- 刪除按鈕 -->
+                                <form method="POST" action="{{ url_for('delete_task', task_id=task[0]) }}" class="d-inline">
+                                    <button type="button" class="btn btn-outline-danger btn-action btn-delete"
+                                            data-task-title="{{ task[1] }}" data-bs-toggle="tooltip" title="刪除任務">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="text-muted mt-3">尚無任務</h4>
+                <p class="text-muted">開始建立您的第一個任務吧！</p>
+                <button class="btn btn-primary" onclick="document.getElementById('title').focus()">
+                    <i class="bi bi-plus-lg me-1"></i>建立第一個任務
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 使用說明 -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-info-circle me-2"></i>使用說明
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>鍵盤快捷鍵：</h6>
+                        <ul class="list-unstyled">
+                            <li><kbd>Ctrl + N</kbd> - 聚焦到新任務輸入框</li>
+                            <li><kbd>Esc</kbd> - 清空表單</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>功能特色：</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check text-success me-1"></i>即時統計更新</li>
+                            <li><i class="bi bi-check text-success me-1"></i>響應式設計</li>
+                            <li><i class="bi bi-check text-success me-1"></i>優雅的動畫效果</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function filterTasks(status) {
+    // 簡單的客戶端篩選功能
+    const taskItems = document.querySelectorAll('.task-item');
+
+    taskItems.forEach(item => {
+        if (status === 'all') {
+            item.style.display = 'block';
+        } else {
+            const statusBadge = item.querySelector('.status-badge');
+            const taskStatus = statusBadge.className.includes('status-' + status);
+            item.style.display = taskStatus ? 'block' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}
