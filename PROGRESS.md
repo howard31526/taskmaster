@@ -27,7 +27,7 @@
    - **驗收條件：** utils.py 包含可重用的工具函式
    - **Commit:** 2527af6 - refactor(utils): 重構工具模組為結構化工具類別
 
-4. **[ ] 重構 GUI 模組**
+4. **[/] 重構 GUI 模組**
    - **檔案範圍：** task_gui.py
    - **摘要：** 將 TaskGUI 類別從 main.py 移到 task_gui.py，分離介面邏輯與業務邏輯
    - **驗收條件：** task_gui.py 可獨立提供完整的桌面介面
