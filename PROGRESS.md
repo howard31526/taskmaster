@@ -32,12 +32,13 @@
    - **摘要：** 將 TaskGUI 類別從 main.py 移到 task_gui.py，分離介面邏輯與業務邏輯
    - **驗收條件：** task_gui.py 可獨立提供完整的桌面介面
 
-5. **[/] 重構 Web API 模組**
+5. **[x] 重構 Web API 模組**
    - **檔案範圍：** api_server.py
    - **摘要：** 將 Flask API 路由從 main.py 移到 api_server.py，改善錯誤處理和 JSON 驗證
    - **驗收條件：** api_server.py 可獨立運行 Web API 服務
+   - **Commit:** e1e03b0 - refactor(api): 重構 Web API 模組並新增現代化介面
 
-6. **[ ] 實作資料庫檢查工具**
+6. **[/] 實作資料庫檢查工具**
    - **檔案範圍：** check_db.py
    - **摘要：** 建立獨立的資料庫查詢工具，用於檢視和管理資料庫內容
    - **驗收條件：** check_db.py 可執行資料庫狀態檢查
