@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git fetch:*), Bash(git checkout:*), Bash(git merge:*), Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Read, Edit
+allowed-tools: Bash(git config:*), Bash(git fetch:*), Bash(git checkout:*), Bash(git merge:*), Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Read, Edit
 argument-hint: <來源分支> <目標分支>
 description: 合併指定分支並處理合併衝突
 ---
