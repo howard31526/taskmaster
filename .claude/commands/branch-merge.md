@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git config:*), Bash(git fetch:*), Bash(git checkout:*), Bash(git merge:*), Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Read, Edit
+allowed-tools: Bash(git config:*), Bash(git checkout:*), Bash(git merge:*), Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*), Read, Edit
 argument-hint: <來源分支> <目標分支>
 description: 合併指定分支並處理合併衝突
 ---
@@ -20,7 +20,7 @@ description: 合併指定分支並處理合併衝突
    - !`git checkout $2`  
 
 3. **嘗試合併**  
-   - !`git merge --no-ff $1`  
+   - !`git merge $1`  
    - 如果沒有衝突 → 自動完成合併，並顯示 `git log --oneline -5`。  
    - 如果有衝突 → 進入下一步。  
 
