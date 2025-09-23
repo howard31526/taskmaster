@@ -44,8 +44,9 @@
    - **驗收條件：** check_db.py 可執行資料庫狀態檢查
    - **Commit:** 7a66207 - feat(database): 實作資料庫檢查工具並增強管理功能
 
-7. **[/] 重構主程式入口與requirement.txt**
+7. **[x] 重構主程式入口與requirement.txt**
    - **檔案範圍：** main.py, requirement.txt
    - **摘要：** 清理 main.py，只保留程式入口邏輯，引用其他模組，以及修改相依套件內容
    - **驗收條件：** main.py 簡潔明瞭，各功能正常運作與正確的套件依賴關係
+   - **Commit:** 4f30a5e - refactor(main): 重構主程式入口並清理依賴套件
 
