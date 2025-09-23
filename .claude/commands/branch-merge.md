@@ -20,7 +20,7 @@ description: 合併指定分支並處理合併衝突
    - !`git checkout $2`  
 
 3. **嘗試合併**  
-   - !`git merge $1`  
+   - !`git merge --no-ff $1`  
    - 如果沒有衝突 → 自動完成合併，並顯示 `git log --oneline -5`。  
    - 如果有衝突 → 進入下一步。  
 
@@ -30,7 +30,7 @@ description: 合併指定分支並處理合併衝突
 
 1. **列出衝突檔案**  
    - !`git status --short`  
-   - !`git diff --name-only --diff-filter=U`  
+   - !`git diff --name-only --diff-filter=U` → 作為 `$FILES`  
 
 2. **顯示衝突內容**  
    - !`git diff`  
@@ -57,6 +57,8 @@ description: 合併指定分支並處理合併衝突
 
 # 完成合併
 提交修改 → 完整依照 @.claude/commands/pack-zh.md 的流程，但提交訊息必須依 @.claude/commands/commit-rules.md 格式。 
+- `$COMMIT` → `git log -1 --pretty=format:"%h"`  
+- `$MESSAGE` → `git log -1 --pretty=format:"%s"`
 
 ---
 # 合併報告輸出
@@ -64,5 +66,17 @@ description: 合併指定分支並處理合併衝突
 完成合併後，請依照以下流程生成報告：  
 @.claude/commands/merge-report-template.md  
 
-> 自動替換模板中的 $DATE、$SOURCE、$TARGET、$USER、$FILES、$CAUSES、$RESOLUTIONS、$TESTS、$COMMIT、$MESSAGE，  
+依照以下規則替換模板變數：  
+- `$DATE` → 當前日期（!`date +"%Y-%m-%d %H:%M:%S"`)  
+- `$SOURCE` → 來源分支（$1 引數）  
+- `$TARGET` → 目標分支（$2 引數）  
+- `$USER` → 本地 git 使用者（!`git config user.name`）  
+- `$FILES` → 衝突檔案列表  
+- `$CAUSES` → 衝突原因分析  
+- `$RESOLUTIONS` → 衝突解決方式  
+- `$TESTS` → 驗證方法（例如「單元測試通過」或「手動測試 GUI 正常」）  
+- `$COMMIT` → 最後合併提交的 ID（前 7 碼）  
+- `$MESSAGE` → 最後合併提交的訊息  
+
 > 生成一份 `merge_logs/YYYYMMDD_merge_$SOURCE-into-$TARGET.md` 檔案，供團隊共享。
+
