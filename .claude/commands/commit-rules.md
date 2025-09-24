@@ -8,7 +8,6 @@ description: Git Commit 訊息規則（繁中，Conventional Commits 標準）
 - 新功能：`feat(<scope>): <一句話描述>`  
 - 修缺漏：`fix(<scope>): <一句話描述>`  
 - 重構：`refactor(<scope>): <一句話描述>`
-- 合併：`merge(<scope>): <一句話描述>`（不得改變對外行為）
 
 範例：
 - `feat(gui): 啟用登入按鈕於表單驗證通過後`
