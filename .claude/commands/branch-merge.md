@@ -6,7 +6,6 @@ description: 合併指定分支並處理合併衝突
 
 # 共用流程
 @.claude/commands/pack-zh.md
-@.claude/commands/commit-rules.md
 @.claude/commands/merge-report-template.md
 
 # 分支合併與衝突處理流程
@@ -15,6 +14,8 @@ description: 合併指定分支並處理合併衝突
    - 目前所在分支：!`git branch --show-current`  
    - 顯示所有分支：!`git branch -a`  
    - 確認是否要把 **$1 (來源分支)** 合併到 **$2 (目標分支)**。  
+
+> 請等待我回覆（是/否）再進行下一步。
 
 2. **切換到目標分支**  
    - !`git checkout $2`  
