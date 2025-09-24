@@ -21,7 +21,7 @@ description: 合併指定分支並處理合併衝突
    - !`git checkout $2`  
 
 3. **嘗試合併**
-   請依照以下方法進行合併：  
+   請依照以下方法進行合併，不進行 Fast Forward 合併:
    - !`git merge --no-ff $1`  
    - 如果沒有衝突 → 自動完成合併，並顯示 `git log --oneline -5`。  
    - 如果有衝突 → 進入下一步。  
