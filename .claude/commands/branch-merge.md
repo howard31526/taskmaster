@@ -57,12 +57,12 @@ description: 合併指定分支並處理合併衝突
 
 # 完成合併
 提交修改 → 請依照 @.claude/commands/pack-zh.md 進行提交，訊息格式如下：
-- Merge branch '<來源分支>' 
+- `Merge branch '<來源分支>'`
 範例： Merge branch 'revised'
 
 # 獲取提交資訊
-- `$COMMIT` → `git log -1 --pretty=format:"%h"`  
-- `$MESSAGE` → `git log -1 --pretty=format:"%s"`
+- `$COMMIT` → !`git log -1 --pretty=format:"%h"`  
+- `$MESSAGE` → !`git log -1 --pretty=format:"%s"`
 
 ---
 # 合併報告輸出
