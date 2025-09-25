@@ -1,15 +1,17 @@
-Flask==3.0.0
-tkinter
-pytest==6.0.0
-numpy==1.21.0
-flask-sqlalchemy==2.5.1
-Werkzeug==2.3.0
-click==8.0.0
-matplotlib
-pillow==8.0.0
-SQLAlchemy==1.4.0
-requests
-beautifulsoup4==4.8.0
-pandas==1.5.0
-sqlite
-python
+# TaskMaster 核心依賴套件
+# Web 介面所需
+Flask>=2.3.0
+
+# GUI 介面所需 (通常內建)
+# tkinter  # 內建模組，不需要在 requirements.txt 中列出
+
+# 工具和開發所需
+requests>=2.28.0
+
+# 資料庫 (SQLite 是內建的，不需要額外安裝)
+# sqlite3  # 內建模組
+
+# 開發和測試用途（可選）
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=5.0.0

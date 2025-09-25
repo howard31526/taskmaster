@@ -1,0 +1,193 @@
+/* TaskMaster 自定義樣式 */
+
+/* 統計卡片樣式 */
+.stats-card {
+    border-radius: 15px;
+    padding: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-card.total {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.stats-card.pending {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+}
+
+.stats-card.in-progress {
+    background: linear-gradient(45deg, #17a2b8, #138496);
+}
+
+.stats-card.completed {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.stats-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* 任務卡片樣式 */
+.task-card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.task-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 優先級標籤 */
+.priority-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+}
+
+.priority-high {
+    background-color: #dc3545;
+    color: white;
+}
+
+.priority-medium {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.priority-low {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* 狀態標籤 */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+}
+
+.status-pending {
+    background-color: #6c757d;
+    color: white;
+}
+
+.status-in-progress {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.status-completed {
+    background-color: #28a745;
+    color: white;
+}
+
+/* 表單樣式 */
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-section h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+/* 按鈕樣式 */
+.btn-action {
+    margin: 0 0.25rem;
+    font-size: 0.875rem;
+}
+
+/* 任務列表樣式 */
+.task-list-header {
+    background: #f8f9fa;
+    border-radius: 10px 10px 0 0;
+    padding: 1rem;
+    margin-bottom: 0;
+}
+
+.task-item {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+}
+
+.task-item:hover {
+    background-color: #f8f9fa;
+}
+
+.task-item:last-child {
+    border-bottom: none;
+    border-radius: 0 0 10px 10px;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .stats-number {
+        font-size: 2rem;
+    }
+
+    .stats-card {
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .task-card {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* 動畫效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* 載入動畫 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
