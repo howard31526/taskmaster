@@ -92,8 +92,8 @@ description: 合併指定分支並處理合併衝突
 - `$USER` → 本地 git 使用者（!`git config user.name`）  
 - `$FILES` → 衝突檔案列表  
 - `$CAUSES` → 衝突原因分析  
-- `$RESOLUTIONS` → 衝突解決方式  
-- `$TESTS` → 條列式詳細驗證方法與改動（例如「手動測試 GUI 正常」或「新增登入功能」）  
+- `$RESOLUTIONS` → 衝突解決方式，請同時列出合併後相對於目標分支的新增功能或改動  
+- `$TESTS` → 條列式詳細驗證方法（例如「手動測試 GUI 正常」）  
 - `$COMMIT` → 最後合併提交的 ID（前 7 碼）  
 - `$MESSAGE` → 最後合併提交的訊息  
 
