@@ -21,7 +21,7 @@ description: 合併指定分支並處理合併衝突
    - !`git checkout $2`  
 
 3. **嘗試合併**
-   請依照以下方法進行合併，不進行 Fast Forward 合併:
+   請依照以下方法進行合併，不進行 Fast Forward 合併，且不自動提交:
    - !`git merge --no-ff --no-commit $1`  
    - 如果沒有衝突 → 自動跳至 '完成合併' 步驟，並依照指示進行提交。  
    - 如果有衝突 → 進入下一步。  
@@ -58,7 +58,7 @@ description: 合併指定分支並處理合併衝突
 ---
 
 # 完成合併
-提交修改 → 請依照 @.claude/commands/pack-zh.md 進行提交，訊息格式如下：
+提交修改 → 請進行提交，訊息格式如下：
 - `Merge branch '<來源分支>' 到 '<目標分支>' ~~~`
 範例： Merge branch 'revised' 到 'main' ~~~
 
