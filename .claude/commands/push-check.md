@@ -10,77 +10,82 @@ description: 上傳前的自動化分支檢查與安全推送
 
 # 上傳前分支檢查與自動化推送
 
-current_branch=!`git branch --show-current`
-target_branch=$1
+1. **第一步：確認分支狀態**
+  - 顯示目前所在分支：`git branch --show-current`
+  - 顯示所有分支：`git branch -a`
+  - 目標分支：$1
 
-1. **確認分支狀態**  
-   - 顯示本地當前分支：!`git branch --show-current`
-   - 顯示所有分支：!`git branch -a`  
-   - 判斷 $current_branch 與 $target_branch：  
-     - 若相同 → 進入正常流程。  
-     - 若不同 → 提示：  
-       ```
-       你目前在本地分支 $current_branch，但指定推送目標為 $target_branch。
-       這將執行：git push origin $current_branch:$target_branch
-       是否確認要這樣推送？
-       [1] 確認推送
-       [2] 改為切換到 $target_branch 分支
-       [3] 新建遠端分支 `git push -u origin $target_branch`
-       ```
+  判斷當前分支與目標分支關係：
+  - 若相同 → 進入正常推送流程
+  - 若不同 → 詢問：「您目前在 [當前分支] 但要推送到 [目標分支]，這將執行跨分支推送。請選擇：
+    [1] 確認跨分支推送
+    [2] 切換到目標分支
+    [3] 建立新的遠端分支
+  」
 
-2. **檢查本地狀態**  
-   - !`git status -s`
-   - **檢查 `.gitignore`**  
-     - 若不存在 → 自動建立並加入基礎規則（如 `.env`、`*.key`、`__pycache__/`）。  
-     - 若已存在 → 檢查當前分支是否包含其他敏感檔案未歸入規則內，缺少時詢問是否補上。
+  > 請等待我回復選項再進行下一步。
 
-   - 如果有未追蹤或未提交的檔案 → 詢問是否先提交（呼叫 @.claude/commands/pack-zh.md）。  
+2. **第二步：檢查本地狀態**
+  - 顯示工作目錄狀態：`git status -s`
+  - 檢查 `.gitignore` 檔案：
+    - 若不存在 → 詢問是否建立基礎 .gitignore 規則
+    - 若已存在 → 檢查是否有敏感檔案未被忽略
 
-3. **檢查遠端同步**  
+  若發現未追蹤或未提交的檔案，詢問：「發現未提交的變更，是否要先提交？（是/否）」
+  - 若選擇「是」→ 呼叫 `/pack-zh` 進行提交
+  - 若選擇「否」→ 繼續推送流程
 
-   - 僅在 $current_branch = $target_branch 時執行以下檢查：  
-     - !`git fetch origin`  
-     - !`git status -uno`  
+  > 請等待我回復再進行下一步。
 
-     - 若本地 **落後於遠端**：  
-       - 嘗試 `git pull --rebase origin $current_branch`  
-         - rebase 成功 → 繼續推送  
-         - rebase 衝突 → 進入互動式解決：  
-           - [1] `/branch-merge origin/$current_branch $current_branch`  
-           - [2] 手動處理 → 結束流程，交由使用者自行採用其他策略（例如 squash、cherry-pick、patch
+3. **第三步：檢查遠端同步**
 
-     - 若本地 **超前或同步** → 可直接推送。  
+  僅在當前分支 = 目標分支時執行同步檢查：
+  - 取得遠端最新狀態：`git fetch origin`
+  - 檢查本地與遠端的關係：`git status -uno`
 
-   - 若 $current_branch ≠ $target_branch → 跳過 rebase/merge，直接進入推送步驟。  
+  若本地分支落後於遠端，詢問：「本地分支落後於遠端，需要同步後才能推送。請選擇處理方式：
+  [1] 使用 /branch-merge 進行安全合併（推薦）
+  [2] 嘗試 rebase（可能有衝突風險）
+  [3] 手動處理（取消推送）
+  」
 
-4. **推送分支**  
-   - 若 $current_branch = $target_branch →
-     !`git push origin $current_branch`  
+  > 請等待我回復選項再進行下一步。
 
-   - 若 $current_branch ≠ $target_branch →
-     !`git push origin $current_branch:$target_branch`  
+  若本地分支超前或同步 → 可直接推送
+  若當前分支 ≠ 目標分支 → 跳過同步檢查，直接推送
 
-   - **若推送被拒絕**：  
-     - 表示遠端 $target_branch 上有新的提交，必須先同步。  
-     - 系統詢問如何處理：  
-       - `[1]` 嘗試 `git pull --rebase origin $target_branch` → 若衝突則交給 `/branch-merge origin/$target_branch $current_branch`
-       - `[2]` 使用 `/branch-merge origin/$target_branch $current_branch` → 保留完整歷史並處理衝突  
-       - `[3]` 手動處理 → 結束流程，交由使用者自行採用其他策略（例如 squash、cherry-pick、patch）
+4. **第四步：執行推送**
 
+  根據分支關係執行推送：
+  - 若當前分支 = 目標分支 → 執行：`git push origin [分支名]`
+  - 若當前分支 ≠ 目標分支 → 執行：`git push origin [當前分支]:[目標分支]`
+
+  **若推送被拒絕**：
+  - 立即取得遠端最新狀態：`git fetch origin`
+  - 詢問：「推送被拒絕，遠端分支有新提交。請選擇處理方式：
+    [1] 使用 /branch-merge 進行安全合併（推薦）
+    [2] 嘗試 rebase（可能有衝突風險）
+    [3] 手動處理（取消推送）
+  」
+
+  > 請等待我回復選項再進行處理。
+
+5. **第五步：推送成功報告**
+
+  推送成功後，詢問：「推送完成！是否要生成推送報告？（是/否）」
+
+  若選擇「是」→ 生成報告包含：
+  - 當前日期：使用 `date +"%Y-%m-%d %H:%M:%S"`
+  - 推送分支資訊
+  - 本地 git 使用者：使用 `git config user.name`
+  - 此次推送的 commit 紀錄（前 5 筆）：使用 `git log --oneline -5`
+  - 輸出至 `push_logs/YYYYMMDD_HH-MM_push_[分支名].md`
+
+  > 請等待我確認是否生成報告。
 
 ---
 
 # 推送安全規範
-- 禁止自動使用 `--force`，除非使用者明確輸入「force」。  
-- 若出現推送被拒絕的錯誤，必須提示先行同步遠端再推送。  
-
----
-
-# 額外輸出
-- 推送完成後，自動輸出一份簡單報告，包含：  
-  - $DATE：當前日期（!`date +"%Y-%m-%d %H:%M:%S"`)    
-  - $BRANCH：推送分支  
-  - $USER：本地 git 使用者（!`git config user.name`）
-  - $COMMITS：此次推送的 commit 紀錄（前 5 筆）  
-- 檔案輸出至 `push_logs/YYYYMMDD_HH-MM_push_$BRANCH.md`，供團隊追蹤。  
-
+- 禁止自動使用 `--force`，除非使用者明確輸入「force」
+- 若出現推送被拒絕的錯誤，必須提示先行同步遠端再推送
+- 所有操作都需要用戶確認後才執行
