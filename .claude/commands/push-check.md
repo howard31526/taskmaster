@@ -41,11 +41,11 @@ description: 上傳前的自動化分支檢查與安全推送
      - !`git status -uno`  
 
      - 若本地 **落後於遠端**：  
-       - 嘗試 `git pull --rebase origin $目標分支`  
+       - 嘗試 `git pull --rebase origin $本地分支`  
          - rebase 成功 → 繼續推送  
          - rebase 衝突 → 進入互動式解決：  
-           - [1] `/branch-merge origin/$目標分支 $目標分支`  
-           - [2] 手動處理→ 結束流程，交由使用者自行採用其他策略（例如 squash、cherry-pick、patch）
+           - [1] `/branch-merge origin/$本地分支 $本地分支`  
+           - [2] 手動處理 → 結束流程，交由使用者自行採用其他策略（例如 squash、cherry-pick、patch
 
      - 若本地 **超前或同步** → 可直接推送。  
 
@@ -53,7 +53,7 @@ description: 上傳前的自動化分支檢查與安全推送
 
 4. **推送分支**  
    - 若 $本地分支 = $目標分支 →  
-     !`git push origin $目標分支`  
+     !`git push origin $本地分支`  
 
    - 若 $本地分支 ≠ $目標分支 →  
      !`git push origin $本地分支:$目標分支`  
@@ -61,8 +61,8 @@ description: 上傳前的自動化分支檢查與安全推送
    - **若推送被拒絕**：  
      - 表示遠端 $目標分支 上有新的提交，必須先同步。  
      - 系統詢問如何處理：  
-       - `[1]` 嘗試 `git pull --rebase origin $目標分支` → 若衝突則交給 `/branch-merge origin/$目標分支 $目標分支`  
-       - `[2]` 使用 `/branch-merge origin/$目標分支 $目標分支` → 保留完整歷史並處理衝突  
+       - `[1]` 嘗試 `git pull --rebase origin $目標分支` → 若衝突則交給 `/branch-merge origin/$目標分支 $本地分支`  
+       - `[2]` 使用 `/branch-merge origin/$目標分支 $本地分支` → 保留完整歷史並處理衝突  
        - `[3]` 手動處理 → 結束流程，交由使用者自行採用其他策略（例如 squash、cherry-pick、patch）
 
 
