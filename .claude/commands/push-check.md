@@ -10,6 +10,9 @@ description: 上傳前的自動化分支檢查與安全推送
 
 # 上傳前分支檢查與自動化推送
 
+本地分支=$(!`git branch --show-current`)
+目標分支=$1
+
 1. **確認分支狀態**  
    - 顯示本地當前分支：!`git branch --show-current` → $本地分支  
    - 顯示所有分支：!`git branch -a`  
