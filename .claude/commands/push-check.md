@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git fetch:*), Bash(git status:*), Bash(git branch:*), Bash(git diff:*), Bash(git pull:*), Bash(git push:*), Bash(git log:*), Read, Write
+allowed-tools: Bash(git fetch:*), Bash(git status:*), Bash(git config:*), Bash(git branch:*), Bash(git diff:*), Bash(git pull:*), Bash(git push:*), Bash(git log:*), Read, Write
 argument-hint: <目標分支>
 description: 上傳前的自動化分支檢查與安全推送
 ---
