@@ -30,8 +30,8 @@ description: 上傳前的自動化分支檢查與安全推送
     - 若不存在 → 詢問是否建立基礎 `.gitignore` 規則
     - 若已存在 → 檢查是否有敏感檔案未被忽略
 
-  - 額外檢查：找出「已經被追蹤但應該忽略的檔案」  
-    - 使用指令：!`git ls-files -i --exclude-from=.gitignore`  
+  - 額外檢查：找出「已經被追蹤但應該忽略的檔案」
+    - 使用指令：!`git ls-files -i --exclude-standard`
     - 若有找到，詢問使用者：  
       ```
       發現以下檔案已被提交，但應該在 .gitignore 中忽略：
