@@ -9,7 +9,10 @@
       "Bash(git cherry-pick:*)",
       "SlashCommand(/pack-zh .)",
       "SlashCommand(/pack-zh .gitignore)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git log:*)",
+      "Bash(grep:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
