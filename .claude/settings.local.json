@@ -10,7 +10,9 @@
       "SlashCommand(/pack-zh .)",
       "SlashCommand(/pack-zh .gitignore)",
       "Bash(git config:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "SlashCommand(/branch-merge origin/main main)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
