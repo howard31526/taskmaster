@@ -52,27 +52,48 @@ jobs:
           echo "🔍 分析錯誤類型..."
           echo ""
           
-          # 從 JSON 提取 result 欄位（錯誤訊息的主要來源）
+          # 從多個 JSON 物件中提取 type="result" 的 result 欄位
           RESULT_MESSAGE=""
           
           if [ -n "$ERROR_OUTPUT" ]; then
-            # 方法 1: 使用 grep + sed 提取 "result" 欄位
-            RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -oP '"result"\s*:\s*"\K[^"]+' 2>/dev/null || echo "")
+            # 將 ERROR_OUTPUT 寫入臨時檔案以便 Python 讀取（避免變數替換問題）
+            echo "$ERROR_OUTPUT" > /tmp/claude_error.txt
             
-            # 方法 2: 如果方法 1 失敗，嘗試使用 Python (更可靠)
+            # 使用 Python 解析
+            RESULT_MESSAGE=$(python3 << 'EOF'
+            import json
+            
+            result_message = ""
+            
+            try:
+                with open('/tmp/claude_error.txt', 'r') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        try:
+                            data = json.loads(line)
+                            # 找到 type="result" 的 JSON 物件
+                            if data.get('type') == 'result' and 'result' in data:
+                                result_message = data['result']
+                                # 保留最後一個 result
+                        except:
+                            continue
+                            
+            except Exception as e:
+                pass
+            
+            print(result_message)
+            EOF
+            )
+            
+            # 清理臨時檔案
+            rm -f /tmp/claude_error.txt
+            
+            # 備用方案：如果 Python 失敗，使用 grep 取最後一個出現的 "result" 值
             if [ -z "$RESULT_MESSAGE" ]; then
-              RESULT_MESSAGE=$(python3 -c "
-              import sys, json, re
-              try:
-                  # 嘗試直接解析 JSON
-                  data = json.loads('''$ERROR_OUTPUT''')
-                  print(data.get('result', ''))
-              except:
-                  # 如果 JSON 解析失敗，使用正則提取
-                  match = re.search(r'\"result\"\s*:\s*\"([^\"]+)\"', '''$ERROR_OUTPUT''')
-                  if match:
-                      print(match.group(1))
-              " 2>/dev/null || echo "")
+              RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -oP '"result"\s*:\s*"\K[^"]+' | tail -n1)
             fi
           fi
           
@@ -239,5 +260,3 @@ jobs:
           echo "::notice::💡 完整的 JSON 錯誤輸出已摺疊在「📋 完整錯誤輸出 (JSON)」區塊中"
           
           exit 1
-
-
