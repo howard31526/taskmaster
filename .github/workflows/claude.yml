@@ -101,6 +101,7 @@ jobs:
             1. 檢查 workflow 檔案中的 permissions 設定
             2. 確認 GitHub token 有足夠權限
             3. 檢查 repository settings 中的 Actions permissions"
+          fi
           
           # 顯示分類結果
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
