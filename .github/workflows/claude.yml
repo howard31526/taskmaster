@@ -42,200 +42,111 @@ jobs:
       - name: Analyze Error
         if: steps.claude.outcome == 'failure'
         run: |
-          echo "::group::🔍 調試：檢查可用資訊"
-          echo "Outcome: ${{ steps.claude.outcome }}"
-          echo "Conclusion: ${{ steps.claude.conclusion }}"
-          echo ""
-          echo "Outputs (JSON):"
-          echo '${{ toJSON(steps.claude.outputs) }}'
-          echo "::endgroup::"
+          # 讀取執行輸出檔案
+          EXECUTION_FILE="${{ steps.claude.outputs.execution_file }}"
           
-          echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-          echo "# ⚠️  Claude Code 執行失敗"
-          echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-          echo "## 💡 常見問題與解決方案"
-          echo ""
-          echo "### 🔐 1. OAuth Token 問題（最常見）"
-          echo ""
-          echo "\`\`\`"
-          echo "錯誤訊息：OAuth token revoked · Please run /login"
-          echo "\`\`\`"
-          echo ""
-          echo "**解決方法：**"
-          echo ""
-          echo "1. 📱 在本地重新登入並授權 GitHub："
-          echo "   \`\`\`bash"
-          echo "   claude code /login"
-          echo "   \`\`\`"
-          echo ""
-          echo "2. ✅ 確認 GitHub App 安裝狀態："
-          echo "   - 前往：https://github.com/settings/installations"
-          echo "   - 確保「Claude Code」App 已安裝"
-          echo "   - 確認有權限存取此 repository"
-          echo ""
-          echo "3. 🔄 如果問題持續："
-          echo "   - 移除舊的 GitHub App 安裝"
-          echo "   - 重新執行 \`claude code /login\`"
-          echo ""
-          echo "---"
-          echo ""
-          echo "### ⏰ 2. 使用額度限制"
-          echo ""
-          echo "\`\`\`"
-          echo "錯誤訊息：Session limit reached · resets at Xpm"
-          echo "\`\`\`"
-          echo ""
-          echo "**解決方法：**"
-          echo ""
-          echo "1. 📊 查看使用狀態：https://claude.ai"
-          echo "2. ⏳ 等待額度重置（通常在訊息中會標明時間）"
-          echo "3. 💎 考慮升級方案：https://claude.ai/settings/plan"
-          echo ""
-          echo "---"
-          echo ""
-          echo "### 🚦 3. API 速率限制"
-          echo ""
-          echo "\`\`\`"
-          echo "錯誤訊息：Rate limit exceeded"
-          echo "\`\`\`"
-          echo ""
-          echo "**解決方法：**"
-          echo ""
-          echo "1. ⏱️  等待 2-5 分鐘後重試"
-          echo "2. ℹ️  這是短時間請求過多的保護機制"
-          echo ""
-          echo "---"
-          echo ""
-          echo "## 🔍 詳細日誌"
-          echo ""
-          echo "請查看上方 **Run Claude Code** 步驟的完整日誌。"
-          echo "錯誤訊息通常會以 JSON 格式顯示，包含 \`\"result\"\` 欄位。"
-          echo ""
-          echo "如果看到 \`\"result\": \"OAuth token revoked\"\`，請按照上方的「OAuth Token 問題」解決。"
-          echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-          echo "::warning title=Claude Code 失敗::請查看上方建議的解決方案，最常見的是 OAuth token 需要重新授權"
-          
-          exit 1
-          
-          echo "::group::🔍 提取的錯誤訊息"
-          echo "Result: $RESULT_MESSAGE"
-          echo "::endgroup::"
-          
-          # 初始化變數
-          ERROR_TYPE="UNKNOWN"
-          ERROR_DETAIL=""
-          NEXT_STEPS=""
-          RESET_TIME=""
-          
-          # 使用 result 訊息進行錯誤分類
-          ERROR_LOG="$RESULT_MESSAGE"
-          
-          # 1. OAuth Token Revoked - 最常見的認證問題
-          if echo "$ERROR_LOG" | grep -qi "OAuth token revoked\|token revoked"; then
-            ERROR_TYPE="🔐 OAUTH_REVOKED"
-            ERROR_DETAIL="OAuth Token 已被撤銷或失效"
-            NEXT_STEPS="1. 📱 重新登入 Claude Code 並授權 GitHub：
-             方法 A：在本地終端執行
-               $ claude code /login
-             方法 B：前往網頁授權
-               https://claude.ai/settings/integrations
-          
-          2. ✅ 確認 GitHub App 安裝狀態：
-             https://github.com/settings/installations
-             確保「Claude Code」App 已安裝並有存取此 repo 的權限
-          
-          3. 🔄 如果重新登入後仍有問題：
-             - 移除 GitHub App (上方連結)
-             - 重新安裝並授權 Claude Code
-          
-          4. ⚠️  注意事項：
-             - Token 由 Claude 系統自動管理
-             - 不需要手動在 GitHub Secrets 中設定
-             - 重新 /login 後會自動更新"
-          
-          # 2. Session Limit - 每日使用額度
-          elif echo "$ERROR_LOG" | grep -qi "session.limit\|session limit reached\|session limit\|usage limit"; then
-            ERROR_TYPE="⏰ SESSION_LIMIT"
-            ERROR_DETAIL="Claude 每日使用額度已達上限"
-            
-            # 嘗試提取重置時間
-            RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "resets.*?(\d+[ap]m)" | head -n1)
-            if [ -z "$RESET_TIME" ]; then
-              RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "\d+[ap]m" | head -n1)
-            fi
-            
-            NEXT_STEPS="1. 📊 查看詳細使用狀態：
-             https://claude.ai (查看右上角的使用量指示)
-          
-          2. ⏳ 等待額度重置"
-            
-            if [ -n "$RESET_TIME" ]; then
-              NEXT_STEPS="${NEXT_STEPS}
-             預計重置時間：$RESET_TIME"
-            fi
-            
-            NEXT_STEPS="${NEXT_STEPS}
-          
-          3. 💎 考慮升級方案：
-             - Pro 方案有更高的使用額度
-             - 前往 https://claude.ai/settings/plan 查看方案選項"
-          
-          # 3. Rate Limit - API 速率限制
-          elif echo "$ERROR_LOG" | grep -qi "rate.limit\|rate limit\|429\|too many requests"; then
-            ERROR_TYPE="🚦 RATE_LIMIT"
-            ERROR_DETAIL="API 請求速率限制（暫時性）"
-            NEXT_STEPS="1. ⏱️  這是短時間內請求過多造成的暫時限制
-          2. ☕ 等待 2-5 分鐘後重試
-          3. ℹ️  這不是每日額度問題，只是速率保護機制"
-          
-          # 4. 一般認證錯誤
-          elif echo "$ERROR_LOG" | grep -qi "unauthorized\|authentication.*failed\|invalid.*token\|401\|403"; then
-            ERROR_TYPE="🔒 AUTHENTICATION"
-            ERROR_DETAIL="認證失敗"
-            NEXT_STEPS="1. 🔍 檢查 GitHub App 安裝：
-             https://github.com/settings/installations
-          
-          2. ✅ 確認「Claude Code」App 權限：
-             - 已安裝
-             - 有存取此 repository 的權限
-          
-          3. 🔄 嘗試重新安裝：
-             - 移除舊的安裝
-             - 重新執行 'claude code /login'"
-          
-          # 5. 權限錯誤
-          elif echo "$ERROR_LOG" | grep -qi "permission.*denied\|forbidden\|not.*allowed"; then
-            ERROR_TYPE="⛔ PERMISSION"
-            ERROR_DETAIL="權限不足"
-            NEXT_STEPS="1. 📝 檢查 workflow 的 permissions 設定
-          2. 🔑 確認 GitHub App 有足夠權限
-          3. ⚙️  檢查 repository Settings → Actions → General"
-          
-          # 6. 其他包含 "error" 的訊息
-          elif echo "$ERROR_LOG" | grep -qi "error"; then
-            ERROR_TYPE="⚠️  GENERAL_ERROR"
-            ERROR_DETAIL="發生錯誤"
-            NEXT_STEPS="1. 📋 查看上方完整錯誤訊息
-          2. 🔍 常見原因檢查：
-             - OAuth token 問題 → 執行 'claude code /login'
-             - 使用額度問題 → 前往 https://claude.ai 查看
-             - 網路或 API 問題 → 稍後重試"
+          if [ ! -f "$EXECUTION_FILE" ]; then
+            echo "::error::找不到執行輸出檔案: $EXECUTION_FILE"
+            exit 1
           fi
           
-          # 顯示分類結果
+          # 讀取檔案內容並提取錯誤訊息
+          RESULT_MESSAGE=$(grep -oP '"result"\s*:\s*"\K[^"]+' "$EXECUTION_FILE" | tail -n1)
+          
+          if [ -z "$RESULT_MESSAGE" ]; then
+            echo "::warning::無法從輸出檔案中提取錯誤訊息"
+            echo "請查看上方 Run Claude Code 步驟的日誌"
+            exit 1
+          fi
+          
+          # 根據錯誤訊息分類並顯示對應的解決方案
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo ""
           
-          if [ "$ERROR_TYPE" != "UNKNOWN" ]; then
-            echo "::error title=$ERROR_TYPE::$ERROR_DETAIL"
+          # 1. OAuth Token 問題
+          if echo "$RESULT_MESSAGE" | grep -qi "OAuth token revoked\|token revoked"; then
+            echo "::error title=🔐 OAuth Token 已撤銷::請重新登入授權"
             echo ""
-            echo "# 🚨 $ERROR_TYPE"
+            echo "# 🔐 OAuth Token 已撤銷"
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "## 📝 錯誤訊息"
+            echo ""
+            echo "\`\`\`"
+            echo "$RESULT_MESSAGE"
+            echo "\`\`\`"
+            echo ""
+            echo "## 🔧 解決步驟"
+            echo ""
+            echo "### 1. 重新登入 Claude Code"
+            echo ""
+            echo "在本地終端執行："
+            echo ""
+            echo "\`\`\`bash"
+            echo "claude code /login"
+            echo "\`\`\`"
+            echo ""
+            echo "### 2. 確認 GitHub App 安裝"
+            echo ""
+            echo "前往：https://github.com/settings/installations"
+            echo ""
+            echo "確保："
+            echo "- ✅ 「Claude Code」App 已安裝"
+            echo "- ✅ 有權限存取此 repository (\`${{ github.repository }}\`)"
+            echo ""
+            echo "### 3. 如果問題持續"
+            echo ""
+            echo "- 🗑️  移除舊的 GitHub App 安裝"
+            echo "- 🔄 重新執行 \`claude code /login\`"
+          
+          # 2. Session Limit
+          elif echo "$RESULT_MESSAGE" | grep -qi "session.limit\|session limit\|usage limit"; then
+            RESET_TIME=$(echo "$RESULT_MESSAGE" | grep -oP "\d+[ap]m" | head -n1)
+            
+            echo "::error title=⏰ 使用額度已達上限::等待額度重置"
+            echo ""
+            echo "# ⏰ 使用額度已達上限"
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "## 📝 錯誤訊息"
+            echo ""
+            echo "\`\`\`"
+            echo "$RESULT_MESSAGE"
+            echo "\`\`\`"
+            echo ""
+            if [ -n "$RESET_TIME" ]; then
+              echo "⏰ **額度重置時間：** \`$RESET_TIME\`"
+              echo ""
+            fi
+            echo "## 🔧 解決步驟"
+            echo ""
+            echo "### 1. 查看使用狀態"
+            echo ""
+            echo "前往：https://claude.ai"
+            echo ""
+            echo "查看右上角的使用量指示器"
+            echo ""
+            echo "### 2. 等待額度重置"
+            echo ""
+            if [ -n "$RESET_TIME" ]; then
+              echo "預計在 **$RESET_TIME** 重置"
+            else
+              echo "額度通常每天重置"
+            fi
+            echo ""
+            echo "### 3. 升級方案（可選）"
+            echo ""
+            echo "前往：https://claude.ai/settings/plan"
+            echo ""
+            echo "Pro 方案提供更高的使用額度"
+          
+          # 3. Rate Limit
+          elif echo "$RESULT_MESSAGE" | grep -qi "rate.limit\|rate limit\|429\|too many requests"; then
+            echo "::error title=🚦 API 速率限制::請稍後重試"
+            echo ""
+            echo "# 🚦 API 速率限制"
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo ""
@@ -247,42 +158,56 @@ jobs:
             echo ""
             echo "## 💡 說明"
             echo ""
-            echo "$ERROR_DETAIL"
+            echo "這是短時間內請求過多造成的**暫時性限制**"
             echo ""
-            if [ -n "$RESET_TIME" ]; then
-              echo "⏰ **重置時間：** \`$RESET_TIME\`"
-              echo ""
-            fi
-            echo "## 🔧 處理步驟"
+            echo "## 🔧 解決步驟"
             echo ""
-            echo "$NEXT_STEPS"
-          else
-            echo "::warning title=未分類錯誤::請查看完整錯誤輸出"
+            echo "1. ⏱️  等待 **2-5 分鐘**"
+            echo "2. 🔄 重新觸發 workflow"
+            echo "3. ℹ️  這不是每日額度問題"
+          
+          # 4. 認證錯誤
+          elif echo "$RESULT_MESSAGE" | grep -qi "unauthorized\|authentication\|invalid.*token\|401\|403"; then
+            echo "::error title=🔒 認證失敗::請檢查授權設定"
             echo ""
-            echo "# ⚠️  無法自動分類此錯誤"
+            echo "# 🔒 認證失敗"
             echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo ""
-            if [ -n "$RESULT_MESSAGE" ]; then
-              echo "## 📝 錯誤訊息"
-              echo ""
-              echo "\`\`\`"
-              echo "$RESULT_MESSAGE"
-              echo "\`\`\`"
-              echo ""
-            fi
-            echo "## 📋 建議檢查步驟"
+            echo "## 📝 錯誤訊息"
             echo ""
-            echo "1. 📄 查看上方「📋 完整錯誤輸出 (JSON)」區塊"
-            echo "2. 🔍 最常見問題："
-            echo "   - OAuth Token 失效 → 執行 \`claude code /login\`"
-            echo "   - 使用額度不足 → https://claude.ai"
-            echo "3. 🐛 如問題持續，請將完整錯誤貼到 GitHub Issue"
+            echo "\`\`\`"
+            echo "$RESULT_MESSAGE"
+            echo "\`\`\`"
+            echo ""
+            echo "## 🔧 解決步驟"
+            echo ""
+            echo "1. 檢查 GitHub App：https://github.com/settings/installations"
+            echo "2. 確認「Claude Code」App 已安裝且有權限"
+            echo "3. 重新執行 \`claude code /login\`"
+          
+          # 5. 其他錯誤
+          else
+            echo "::error title=⚠️ 執行失敗::$RESULT_MESSAGE"
+            echo ""
+            echo "# ⚠️  執行失敗"
+            echo ""
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "## 📝 錯誤訊息"
+            echo ""
+            echo "\`\`\`"
+            echo "$RESULT_MESSAGE"
+            echo "\`\`\`"
+            echo ""
+            echo "## 🔍 常見解決方案"
+            echo ""
+            echo "1. 🔐 OAuth Token 問題 → \`claude code /login\`"
+            echo "2. ⏰ 使用額度問題 → https://claude.ai"
+            echo "3. 🔄 網路或暫時性問題 → 重試"
           fi
           
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
-          echo "::notice::💡 完整的 JSON 錯誤輸出已摺疊在「📋 完整錯誤輸出 (JSON)」區塊中"
           
           exit 1
