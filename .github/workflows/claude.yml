@@ -52,44 +52,20 @@ jobs:
           echo "🔍 分析錯誤類型..."
           echo ""
           
-          # 從多個 JSON 物件中提取 type="result" 的 result 欄位
-          RESULT_MESSAGE=""
+          # ===== 調試區塊：顯示提取過程 =====
+          echo "::group::🐛 調試：提取 result 欄位"
+          echo "步驟 1: 搜尋所有 result 欄位..."
+          echo "$ERROR_OUTPUT" | grep -o '"result"[[:space:]]*:[[:space:]]*"[^"]*"' || echo "  (未找到匹配)"
+          echo ""
+          echo "步驟 2: 提取最後一個 result 值..."
+          RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -o '"result"[[:space:]]*:[[:space:]]*"[^"]*"' | tail -n1 | sed 's/"result"[[:space:]]*:[[:space:]]*"\(.*\)"/\1/')
+          echo "  提取結果: '$RESULT_MESSAGE'"
+          echo "::endgroup::"
+          # ===== 調試區塊結束 =====
           
-          if [ -n "$ERROR_OUTPUT" ]; then
-            # 方法 1: 使用 jq（最可靠，但需要安裝）
-            if command -v jq &> /dev/null; then
-              RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep '"type".*"result"' | jq -r 'select(.type == "result") | .result' 2>/dev/null | tail -n1 || echo "")
-            fi
-            
-            # 方法 2: 使用 Python（備用方案）
-            if [ -z "$RESULT_MESSAGE" ]; then
-              echo "$ERROR_OUTPUT" > /tmp/claude_error.txt
-              RESULT_MESSAGE=$(python3 -c '
-              import json
-              result_message = ""
-              try:
-                  with open("/tmp/claude_error.txt", "r") as f:
-                      for line in f:
-                          line = line.strip()
-                          if not line:
-                              continue
-                          try:
-                              data = json.loads(line)
-                              if data.get("type") == "result" and "result" in data:
-                                  result_message = data["result"]
-                          except:
-                              continue
-              except:
-                  pass
-              print(result_message)
-              ' 2>/dev/null || echo "")
-              rm -f /tmp/claude_error.txt
-            fi
-            
-            # 方法 3: 使用 grep（最後備用方案）
-            if [ -z "$RESULT_MESSAGE" ]; then
-              RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -oP '"result"\s*:\s*"\K[^"]+' | tail -n1 || echo "")
-            fi
+          # 如果第一種方法失敗，使用備用方法
+          if [ -z "$RESULT_MESSAGE" ]; then
+            RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -oP '"result"\s*:\s*"\K[^"]+' | tail -n1)
           fi
           
           echo "::group::🔍 提取的錯誤訊息"
@@ -155,7 +131,30 @@ jobs:
              - Pro 方案有更高的使用額度
              - 前往 https://claude.ai/settings/plan 查看方案選項"
           
-          # 3. 權限錯誤
+          # 3. Rate Limit - API 速率限制
+          elif echo "$ERROR_LOG" | grep -qi "rate.limit\|rate limit\|429\|too many requests"; then
+            ERROR_TYPE="🚦 RATE_LIMIT"
+            ERROR_DETAIL="API 請求速率限制（暫時性）"
+            NEXT_STEPS="1. ⏱️  這是短時間內請求過多造成的暫時限制
+          2. ☕ 等待 2-5 分鐘後重試
+          3. ℹ️  這不是每日額度問題，只是速率保護機制"
+          
+          # 4. 一般認證錯誤
+          elif echo "$ERROR_LOG" | grep -qi "unauthorized\|authentication.*failed\|invalid.*token\|401\|403"; then
+            ERROR_TYPE="🔒 AUTHENTICATION"
+            ERROR_DETAIL="認證失敗"
+            NEXT_STEPS="1. 🔍 檢查 GitHub App 安裝：
+             https://github.com/settings/installations
+          
+          2. ✅ 確認「Claude Code」App 權限：
+             - 已安裝
+             - 有存取此 repository 的權限
+          
+          3. 🔄 嘗試重新安裝：
+             - 移除舊的安裝
+             - 重新執行 'claude code /login'"
+          
+          # 5. 權限錯誤
           elif echo "$ERROR_LOG" | grep -qi "permission.*denied\|forbidden\|not.*allowed"; then
             ERROR_TYPE="⛔ PERMISSION"
             ERROR_DETAIL="權限不足"
@@ -163,7 +162,7 @@ jobs:
           2. 🔑 確認 GitHub App 有足夠權限
           3. ⚙️  檢查 repository Settings → Actions → General"
           
-          # 4. 其他包含 "error" 的訊息
+          # 6. 其他包含 "error" 的訊息
           elif echo "$ERROR_LOG" | grep -qi "error"; then
             ERROR_TYPE="⚠️  GENERAL_ERROR"
             ERROR_DETAIL="發生錯誤"
