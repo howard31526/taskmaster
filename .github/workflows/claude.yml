@@ -32,182 +32,350 @@ jobs:
 
       - name: Run Claude Code
         id: claude
+        timeout-minutes: 15
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           additional_permissions: |
             actions: read
+          claude_args: --max-turns 20
         continue-on-error: true
 
-      - name: Analyze Error
+      # ============================================================
+      # 階段一：檢查是否為 Claude Code 系統級錯誤
+      # ============================================================
+      - name: Check Error Type
+        id: error_check
         if: steps.claude.outcome == 'failure'
         run: |
-          # 讀取執行輸出檔案
           EXECUTION_FILE="${{ steps.claude.outputs.execution_file }}"
           
+          # 檢查 execution file 是否存在
           if [ ! -f "$EXECUTION_FILE" ]; then
-            echo "::error::找不到執行輸出檔案: $EXECUTION_FILE"
-            exit 1
+            echo "error_type=SYSTEM_FAILURE" >> $GITHUB_OUTPUT
+            echo "error_message=Execution file not found - possible system failure" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
-          # 讀取檔案內容並提取錯誤訊息
+          # 提取錯誤訊息
           RESULT_MESSAGE=$(grep -oP '"result"\s*:\s*"\K[^"]+' "$EXECUTION_FILE" | tail -n1)
           
           if [ -z "$RESULT_MESSAGE" ]; then
-            echo "::warning::無法從輸出檔案中提取錯誤訊息"
-            echo "請查看上方 Run Claude Code 步驟的日誌"
-            exit 1
+            echo "error_type=UNKNOWN" >> $GITHUB_OUTPUT
+            echo "error_message=No error message found" >> $GITHUB_OUTPUT
+            exit 0
           fi
           
-          # 根據錯誤訊息分類並顯示對應的解決方案
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo ""
+          echo "error_message=$RESULT_MESSAGE" >> $GITHUB_OUTPUT
           
-          # 1. OAuth Token 問題
+          # 判斷是否為 Claude Code 系統級錯誤（無法運作）
           if echo "$RESULT_MESSAGE" | grep -qi "OAuth token revoked\|token revoked"; then
-            echo "::error title=🔐 OAuth Token 已撤銷::請重新登入授權"
-            echo ""
-            echo "# 🔐 OAuth Token 已撤銷"
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            echo "## 📝 錯誤訊息"
-            echo ""
-            echo "\`\`\`"
-            echo "$RESULT_MESSAGE"
-            echo "\`\`\`"
-            echo ""
-            echo "## 🔧 解決步驟"
-            echo ""
-            echo "### 1. 重新登入 Claude Code"
-            echo ""
-            echo "在本地終端執行："
-            echo ""
-            echo "\`\`\`bash"
-            echo "claude code /login"
-            echo "\`\`\`"
-            echo ""
-            echo "### 2. 確認 GitHub App 安裝"
-            echo ""
-            echo "前往：https://github.com/settings/installations"
-            echo ""
-            echo "確保："
-            echo "- ✅ 「Claude Code」App 已安裝"
-            echo "- ✅ 有權限存取此 repository (\`${{ github.repository }}\`)"
-            echo ""
-            echo "### 3. 如果問題持續"
-            echo ""
-            echo "- 🗑️  移除舊的 GitHub App 安裝"
-            echo "- 🔄 重新執行 \`claude code /login\`"
-          
-          # 2. Session Limit
+            echo "error_type=OAUTH_REVOKED" >> $GITHUB_OUTPUT
           elif echo "$RESULT_MESSAGE" | grep -qi "session.limit\|session limit\|usage limit"; then
-            RESET_TIME=$(echo "$RESULT_MESSAGE" | grep -oP "\d+[ap]m" | head -n1)
-            
-            echo "::error title=⏰ 使用額度已達上限::等待額度重置"
-            echo ""
-            echo "# ⏰ 使用額度已達上限"
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            echo "## 📝 錯誤訊息"
-            echo ""
-            echo "\`\`\`"
-            echo "$RESULT_MESSAGE"
-            echo "\`\`\`"
-            echo ""
-            if [ -n "$RESET_TIME" ]; then
-              echo "⏰ **額度重置時間：** \`$RESET_TIME\`"
-              echo ""
-            fi
-            echo "## 🔧 解決步驟"
-            echo ""
-            echo "### 1. 查看使用狀態"
-            echo ""
-            echo "前往：https://claude.ai"
-            echo ""
-            echo "查看右上角的使用量指示器"
-            echo ""
-            echo "### 2. 等待額度重置"
-            echo ""
-            if [ -n "$RESET_TIME" ]; then
-              echo "預計在 **$RESET_TIME** 重置"
-            else
-              echo "額度通常每天重置"
-            fi
-            echo ""
-            echo "### 3. 升級方案（可選）"
-            echo ""
-            echo "前往：https://claude.ai/settings/plan"
-            echo ""
-            echo "Pro 方案提供更高的使用額度"
-          
-          # 3. Rate Limit
-          elif echo "$RESULT_MESSAGE" | grep -qi "rate.limit\|rate limit\|429\|too many requests"; then
-            echo "::error title=🚦 API 速率限制::請稍後重試"
-            echo ""
-            echo "# 🚦 API 速率限制"
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            echo "## 📝 錯誤訊息"
-            echo ""
-            echo "\`\`\`"
-            echo "$RESULT_MESSAGE"
-            echo "\`\`\`"
-            echo ""
-            echo "## 💡 說明"
-            echo ""
-            echo "這是短時間內請求過多造成的**暫時性限制**"
-            echo ""
-            echo "## 🔧 解決步驟"
-            echo ""
-            echo "1. ⏱️  等待 **2-5 分鐘**"
-            echo "2. 🔄 重新觸發 workflow"
-            echo "3. ℹ️  這不是每日額度問題"
-          
-          # 4. 認證錯誤
-          elif echo "$RESULT_MESSAGE" | grep -qi "unauthorized\|authentication\|invalid.*token\|401\|403"; then
-            echo "::error title=🔒 認證失敗::請檢查授權設定"
-            echo ""
-            echo "# 🔒 認證失敗"
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            echo "## 📝 錯誤訊息"
-            echo ""
-            echo "\`\`\`"
-            echo "$RESULT_MESSAGE"
-            echo "\`\`\`"
-            echo ""
-            echo "## 🔧 解決步驟"
-            echo ""
-            echo "1. 檢查 GitHub App：https://github.com/settings/installations"
-            echo "2. 確認「Claude Code」App 已安裝且有權限"
-            echo "3. 重新執行 \`claude code /login\`"
-          
-          # 5. 其他錯誤
+            echo "error_type=SESSION_LIMIT" >> $GITHUB_OUTPUT
+          elif echo "$RESULT_MESSAGE" | grep -qi "rate.limit\|rate limit\|429"; then
+            echo "error_type=RATE_LIMIT" >> $GITHUB_OUTPUT
+          elif echo "$RESULT_MESSAGE" | grep -qi "unauthorized\|authentication.*failed\|invalid.*token\|401\|403"; then
+            echo "error_type=AUTH_FAILED" >> $GITHUB_OUTPUT
           else
-            echo "::error title=⚠️ 執行失敗::$RESULT_MESSAGE"
-            echo ""
-            echo "# ⚠️  執行失敗"
-            echo ""
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo ""
-            echo "## 📝 錯誤訊息"
-            echo ""
-            echo "\`\`\`"
-            echo "$RESULT_MESSAGE"
-            echo "\`\`\`"
-            echo ""
-            echo "## 🔍 常見解決方案"
-            echo ""
-            echo "1. 🔐 OAuth Token 問題 → \`claude code /login\`"
-            echo "2. ⏰ 使用額度問題 → https://claude.ai"
-            echo "3. 🔄 網路或暫時性問題 → 重試"
+            # 不是系統級錯誤，是任務執行失敗 - 可以讓 Claude 分析
+            echo "error_type=TASK_FAILURE" >> $GITHUB_OUTPUT
+          fi
+
+      # ============================================================
+      # 階段二A：處理系統級錯誤（用預設規則）
+      # ============================================================
+      - name: Handle System Error
+        if: |
+          steps.claude.outcome == 'failure' && 
+          steps.error_check.outputs.error_type != 'TASK_FAILURE' &&
+          steps.error_check.outputs.error_type != 'UNKNOWN'
+        run: |
+          ERROR_TYPE="${{ steps.error_check.outputs.error_type }}"
+          ERROR_MESSAGE="${{ steps.error_check.outputs.error_message }}"
+          
+          # 根據錯誤類型生成報告
+          case "$ERROR_TYPE" in
+            "OAUTH_REVOKED")
+              TITLE="🔐 OAuth Token 已撤銷"
+              DESCRIPTION="你的 Claude Code OAuth token 已被撤銷或失效"
+              SOLUTION="1. 在本地終端執行：\`claude code /login\`
+          2. 完成 OAuth 授權流程
+          3. 確認 GitHub App 已安裝：https://github.com/settings/installations
+          4. 重新觸發此 workflow"
+              DOCS="- [Claude Code 設定](https://docs.claude.com/en/docs/claude-code/github-actions)
+          - [GitHub App 管理](https://github.com/settings/installations)"
+              ;;
+            
+            "SESSION_LIMIT")
+              RESET_TIME=$(echo "$ERROR_MESSAGE" | grep -oP "\d+[ap]m" | head -n1)
+              TITLE="⏰ 使用額度已達上限"
+              DESCRIPTION="Claude 每日使用額度已用完"
+              SOLUTION="1. 查看使用狀態：https://claude.ai
+          2. 等待額度重置"
+              if [ -n "$RESET_TIME" ]; then
+                SOLUTION="$SOLUTION（預計 $RESET_TIME 重置）"
+              fi
+              SOLUTION="$SOLUTION
+          3. 考慮升級方案：https://claude.ai/settings/plan"
+              DOCS="- [Claude 定價方案](https://www.anthropic.com/pricing)"
+              ;;
+            
+            "RATE_LIMIT")
+              TITLE="🚦 API 速率限制"
+              DESCRIPTION="短時間內請求過多，觸發速率保護"
+              SOLUTION="1. 等待 2-5 分鐘
+          2. 重新觸發 workflow
+          3. 這是暫時性限制，不是每日額度問題"
+              DOCS="- [API 速率限制說明](https://docs.anthropic.com/rate-limits)"
+              ;;
+            
+            "AUTH_FAILED")
+              TITLE="🔒 認證失敗"
+              DESCRIPTION="無法通過身份驗證"
+              SOLUTION="1. 檢查 GitHub App 安裝：https://github.com/settings/installations
+          2. 確認 repository secrets 設定
+          3. 嘗試重新執行 \`claude code /login\`"
+              DOCS="- [認證設定指南](https://docs.claude.com/en/docs/claude-code/github-actions)"
+              ;;
+          esac
+          
+          # 生成 Markdown 報告
+          REPORT=$(cat <<EOF
+          ## $TITLE
+          
+          ---
+          
+          ### 📝 錯誤訊息
+          
+          \`\`\`
+          $ERROR_MESSAGE
+          \`\`\`
+          
+          ---
+          
+          ### 💡 問題說明
+          
+          $DESCRIPTION
+          
+          ---
+          
+          ### 🔧 解決方案
+          
+          $SOLUTION
+          
+          ---
+          
+          ### 📚 相關資源
+          
+          $DOCS
+          
+          ---
+          
+          <details>
+          <summary>🔍 查看詳細日誌</summary>
+          
+          [GitHub Actions Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          </details>
+          EOF
+          )
+          
+          # 發布評論到 GitHub
+          if [ "${{ github.event_name }}" = "issues" ] || [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "$REPORT" | gh issue comment ${{ github.event.issue.number }} --body-file - --repo ${{ github.repository }}
+          elif [ "${{ github.event_name }}" = "pull_request_review_comment" ] || [ "${{ github.event_name }}" = "pull_request_review" ]; then
+            echo "$REPORT" | gh pr comment ${{ github.event.pull_request.number }} --body-file - --repo ${{ github.repository }}
           fi
           
-          echo ""
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ 已在 GitHub 發布系統錯誤報告"
+          exit 0
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # ============================================================
+      # 階段二B：讓 Claude 分析任務失敗（智能分析）
+      # ============================================================
+      - name: Analyze Task Failure with Claude
+        if: |
+          steps.claude.outcome == 'failure' && 
+          steps.error_check.outputs.error_type == 'TASK_FAILURE'
+        timeout-minutes: 5
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: --max-turns 10
+          prompt: |
+            剛才執行 Claude Code 時任務失敗了。請幫我分析失敗原因並提供解決方案。
+            
+            ## 背景資訊
+            
+            - **執行輸出檔案：** ${{ steps.claude.outputs.execution_file }}
+            - **Repository：** ${{ github.repository }}
+            - **Event：** ${{ github.event_name }}
+            - **Actor：** @${{ github.actor }}
+            
+            ## 任務說明
+            
+            ### 步驟 1：讀取並分析執行日誌
+            
+            1. 讀取執行輸出檔案
+            2. 分析 JSON 內容，特別注意：
+               - `result` 欄位的錯誤訊息
+               - `num_turns` - 執行了幾輪對話
+               - `duration_ms` - 執行時長
+               - 是否有 timeout 相關訊息
+               - 是否有程式錯誤、編譯錯誤等
+            
+            ### 步驟 2：診斷問題
+            
+            可能的任務失敗原因：
+            - **Timeout**：執行時間過長（超過 15 分鐘）
+            - **程式錯誤**：語法錯誤、runtime error
+            - **測試失敗**：單元測試或整合測試失敗
+            - **編譯錯誤**：編譯失敗
+            - **權限問題**：無法讀寫特定檔案
+            - **依賴問題**：缺少必要的套件或工具
+            - **邏輯錯誤**：程式邏輯有問題
+            - **環境問題**：環境設定不正確
+            
+            ### 步驟 3：提供解決方案
+            
+            根據診斷結果，提供：
+            1. **問題根因分析**（技術層面的解釋）
+            2. **具體修復步驟**（可操作的指令或代碼）
+            3. **預防建議**（避免再次發生）
+            
+            ### 步驟 4：發布分析報告
+            
+            使用 `gh` CLI 在原始 issue/PR 發布評論：
+            
+            ```bash
+            # 根據 event 類型選擇正確的指令
+            gh issue comment <NUMBER> --body "..." --repo ${{ github.repository }}
+            # 或
+            gh pr comment <NUMBER> --body "..." --repo ${{ github.repository }}
+            ```
+            
+            評論格式（Markdown）：
+            
+            ```markdown
+            ## 🔍 任務執行失敗分析
+            
+            ---
+            
+            ### 📊 執行資訊
+            
+            - **執行輪數：** [num_turns]
+            - **執行時長：** [duration_ms] ms
+            - **失敗時間：** [timestamp]
+            
+            ---
+            
+            ### ⚠️ 錯誤摘要
+            
+            [用 1-2 句話概括問題]
+            
+            **錯誤訊息：**
+            ```
+            [關鍵錯誤訊息]
+            ```
+            
+            ---
+            
+            ### 🔬 問題診斷
+            
+            **問題類型：** [Timeout / 程式錯誤 / 測試失敗 / 等]
+            
+            **根本原因：**
+            [詳細解釋為什麼會失敗]
+            
+            **影響範圍：**
+            [說明這個問題影響了什麼]
+            
+            ---
+            
+            ### 💊 解決方案
+            
+            #### 建議修復步驟：
+            
+            1. [具體步驟 1]
+               ```bash
+               [相關指令]
+               ```
+            
+            2. [具體步驟 2]
+               ```python
+               [相關代碼]
+               ```
+            
+            3. [具體步驟 3]
+            
+            ---
+            
+            ### 🛡️ 預防建議
+            
+            - [建議 1]
+            - [建議 2]
+            - [建議 3]
+            
+            ---
+            
+            ### 🔗 相關資源
+            
+            - [相關文檔或參考資料]
+            
+            ---
+            
+            <details>
+            <summary>📋 完整執行日誌</summary>
+            
+            [GitHub Actions Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            </details>
+            ```
+            
+            ## 重要提示
+            
+            - 使用繁體中文撰寫
+            - 確保分析基於實際的執行日誌，不要猜測
+            - 提供的解決方案要具體可操作
+            - 如果涉及程式碼修改，給出具體的 diff 或代碼片段
+            - Issue Number: ${{ github.event.issue.number }}
+            - PR Number: ${{ github.event.pull_request.number }}
+
+      # ============================================================
+      # 階段三：處理未知錯誤
+      # ============================================================
+      - name: Handle Unknown Error
+        if: |
+          steps.claude.outcome == 'failure' && 
+          steps.error_check.outputs.error_type == 'UNKNOWN'
+        run: |
+          REPORT=$(cat <<'EOF'
+          ## ⚠️ 發生未知錯誤
           
-          exit 1
+          Claude Code 執行失敗，但無法自動識別錯誤類型。
+          
+          ### 🔍 建議排查步驟
+          
+          1. 查看 [完整執行日誌](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          2. 檢查 Claude Code 是否正常運作：`claude code --version`
+          3. 確認 OAuth token 狀態：https://claude.ai/settings/integrations
+          4. 如果問題持續，請提交 Issue 到：https://github.com/anthropics/claude-code-action/issues
+          
+          ### 📝 錯誤訊息
+          
+          ```
+          ${{ steps.error_check.outputs.error_message }}
+          ```
+          EOF
+          )
+          
+          if [ "${{ github.event_name }}" = "issues" ] || [ "${{ github.event_name }}" = "issue_comment" ]; then
+            echo "$REPORT" | gh issue comment ${{ github.event.issue.number }} --body-file - --repo ${{ github.repository }}
+          elif [ "${{ github.event_name }}" = "pull_request_review_comment" ] || [ "${{ github.event_name }}" = "pull_request_review" ]; then
+            echo "$REPORT" | gh pr comment ${{ github.event.pull_request.number }} --body-file - --repo ${{ github.repository }}
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
