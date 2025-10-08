@@ -23,7 +23,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,34 +35,68 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          
-          # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
         continue-on-error: true
 
       - name: Analyze Error
         if: steps.claude.outcome == 'failure'
+        env:
+          ERROR_OUTPUT: ${{ steps.claude.outputs.error }}
         run: |
-          echo "::group::📋 完整錯誤輸出"
-          ERROR_LOG="${{ steps.claude.outputs.error || '' }}"
-          echo "$ERROR_LOG"
+          echo "::group::📋 完整錯誤輸出 (JSON)"
+          echo "$ERROR_OUTPUT"
           echo "::endgroup::"
           
           echo ""
           echo "🔍 分析錯誤類型..."
           echo ""
           
+          # 從 JSON 提取 result 欄位（錯誤訊息的主要來源）
+          RESULT_MESSAGE=""
+          
+          if [ -n "$ERROR_OUTPUT" ]; then
+            # 方法 1: 使用 grep + sed 提取 "result" 欄位
+            RESULT_MESSAGE=$(echo "$ERROR_OUTPUT" | grep -oP '"result"\s*:\s*"\K[^"]+' 2>/dev/null || echo "")
+          fi
+        
+          echo "::group::🔍 提取的錯誤訊息"
+          echo "Result: $RESULT_MESSAGE"
+          echo "::endgroup::"
+          
+          # 初始化變數
           ERROR_TYPE="UNKNOWN"
           ERROR_DETAIL=""
           NEXT_STEPS=""
           RESET_TIME=""
           
-          # 1. 檢查 Session Limit（最常見的問題）
-          if echo "$ERROR_LOG" | grep -qi "session.limit\|session limit reached\|session limit"; then
-            ERROR_TYPE="SESSION_LIMIT"
+          # 使用 result 訊息進行錯誤分類
+          ERROR_LOG="$RESULT_MESSAGE"
+          
+          # 1. OAuth Token Revoked - 最常見的認證問題
+          if echo "$ERROR_LOG" | grep -qi "OAuth token revoked\|token revoked"; then
+            ERROR_TYPE="🔐 OAUTH_REVOKED"
+            ERROR_DETAIL="OAuth Token 已被撤銷或失效"
+            NEXT_STEPS="
+            1. 檢查 GitHub App 安裝狀態：https://github.com/settings/installations
+            2. 確認「Claude Code」App 已安裝且有權限存取此 repository
+            3. 檢查 repository secrets 中是否有 CLAUDE_CODE_OAUTH_TOKEN
+            4. 如果問題持續，嘗試重新安裝 Claude Code App：
+               - 移除：https://github.com/settings/installations
+               - 重新安裝：從 install-github-app 重新連結 GitHub
+            5. ⚠️ 注意：此 token 由系統自動產生，無法在 claude.ai 手動查看或產生"
+          
+          # 2. Session Limit - 每日使用額度
+          elif echo "$ERROR_LOG" | grep -qi "session.limit\|session limit reached\|session limit\|usage limit"; then
+            ERROR_TYPE="⏰ SESSION_LIMIT"
             ERROR_DETAIL="Claude 每日使用額度已達上限"
-            RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "resets \K[0-9]+[ap]m" | head -n1)
+            
+            # 嘗試提取重置時間
+            RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "resets.*?(\d+[ap]m)" | head -n1)
+            if [ -z "$RESET_TIME" ]; then
+              RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "\d+[ap]m" | head -n1)
+            fi
+            
             NEXT_STEPS="
             1. 前往 https://claude.ai 查看詳細使用狀態
             2. 等待使用額度重置"
@@ -72,19 +106,20 @@ jobs:
               NEXT_STEPS="${NEXT_STEPS}
             3. 或考慮升級到更高方案以獲得更多額度"
           
-          # 2. 檢查 Rate Limit（API 速率限制）
-          elif echo "$ERROR_LOG" | grep -qi "rate.limit\|rate limit\|429"; then
-            ERROR_TYPE="RATE_LIMIT"
-            ERROR_DETAIL="API 請求速率限制"
+          # 3. Rate Limit - API 速率限制
+          elif echo "$ERROR_LOG" | grep -qi "rate.limit\|rate limit\|429\|too many requests"; then
+            ERROR_TYPE="🚦 RATE_LIMIT"
+            ERROR_DETAIL="API 請求速率限制（暫時性）"
             NEXT_STEPS="
             1. 這是暫時性的速率限制
             2. 等待幾分鐘後重試
             3. 這不是每日額度問題，而是短時間請求過多"
           
-          # 3. 檢查認證錯誤
-          elif echo "$ERROR_LOG" | grep -qi "OAuth token revoked\|authentication.failed\|invalid.token\|401\|403"; then
-            ERROR_TYPE="AUTHENTICATION"
-            ERROR_DETAIL="
+          # 4. 一般認證錯誤
+          elif echo "$ERROR_LOG" | grep -qi "unauthorized\|authentication.*failed\|invalid.*token\|401\|403"; then
+            ERROR_TYPE="🔒 AUTHENTICATION"
+            ERROR_DETAIL="認證失敗"
+            NEXT_STEPS="
             1. 檢查 GitHub App 安裝狀態：https://github.com/settings/installations
             2. 確認「Claude Code」App 已安裝且有權限存取此 repository
             3. 檢查 repository secrets 中是否有 CLAUDE_CODE_OAUTH_TOKEN
@@ -93,14 +128,24 @@ jobs:
                - 重新安裝：從 install-github-app 重新連結 GitHub
             5. ⚠️ 注意：此 token 由系統自動產生，無法在 claude.ai 手動查看或產生"
           
-          # 4. 檢查權限錯誤
-          elif echo "$ERROR_LOG" | grep -qi "permission.denied\|forbidden\|not.allowed"; then
-            ERROR_TYPE="PERMISSION"
+          # 5. 權限錯誤
+          elif echo "$ERROR_LOG" | grep -qi "permission.*denied\|forbidden\|not.*allowed"; then
+            ERROR_TYPE="⛔ PERMISSION"
             ERROR_DETAIL="權限不足"
             NEXT_STEPS="
             1. 檢查 workflow 檔案中的 permissions 設定
             2. 確認 GitHub token 有足夠權限
             3. 檢查 repository settings 中的 Actions permissions"
+          
+          # 6. 其他包含 "error" 的訊息
+          elif echo "$ERROR_LOG" | grep -qi "error"; then
+            ERROR_TYPE="⚠️  GENERAL_ERROR"
+            ERROR_DETAIL="發生錯誤"
+            NEXT_STEPS="1. 📋 查看上方完整錯誤訊息
+          2. 🔍 常見原因檢查：
+             - OAuth token 問題 → 執行 'claude code /login'
+             - 使用額度問題 → 前往 https://claude.ai 查看
+             - 網路或 API 問題 → 稍後重試"
           fi
           
           # 顯示分類結果
@@ -108,40 +153,59 @@ jobs:
           echo ""
           
           if [ "$ERROR_TYPE" != "UNKNOWN" ]; then
-            echo "::error 錯誤類型：$ERROR_TYPE::$ERROR_DETAIL"
+            echo "::error title=$ERROR_TYPE::$ERROR_DETAIL"
             echo ""
-            echo "**錯誤類型：$ERROR_TYPE**"
+            echo "# 🚨 $ERROR_TYPE"
+            echo ""
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             echo ""
-            echo "**錯誤說明：**"
+            echo "## 📝 錯誤訊息"
+            echo ""
+            echo "\`\`\`"
+            echo "$RESULT_MESSAGE"
+            echo "\`\`\`"
+            echo ""
+            echo "## 💡 說明"
+            echo ""
             echo "$ERROR_DETAIL"
             echo ""
             if [ -n "$RESET_TIME" ]; then
-              echo "⏰ **額度重置時間：** $RESET_TIME"
+              echo "⏰ **重置時間：** \`$RESET_TIME\`"
               echo ""
             fi
-            echo "🔧 **建議處理步驟：**"
+            echo "## 🔧 處理步驟"
+            echo ""
             echo "$NEXT_STEPS"
           else
-            echo "::error 未知錯誤::無法自動分類此錯誤"
+            echo "::warning title=未分類錯誤::請查看完整錯誤輸出"
             echo ""
-            echo "⚠️  **無法自動分類此錯誤**"
+            echo "# ⚠️  無法自動分類此錯誤"
             echo ""
-            echo "📋 **建議檢查步驟：**"
-            echo "1. 查看上方「📋 完整錯誤輸出」區塊"
-            echo "2. 前往 https://claude.ai 檢查帳戶狀態（最常見原因是使用額度）"
-            echo "3. 檢查 CLAUDE_CODE_OAUTH_TOKEN 是否有效"
-            echo "4. 如果問題持續，請將錯誤訊息複製到 GitHub Issue"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            if [ -n "$RESULT_MESSAGE" ]; then
+              echo "## 📝 錯誤訊息"
+              echo ""
+              echo "\`\`\`"
+              echo "$RESULT_MESSAGE"
+              echo "\`\`\`"
+              echo ""
+            fi
+            echo "## 📋 建議檢查步驟"
+            echo ""
+            echo "1. 📄 查看上方「📋 完整錯誤輸出 (JSON)」區塊"
+            echo "2. 🔍 最常見問題："
+            echo "   - OAuth Token 失效 → 執行 \`claude code /login\`"
+            echo "   - 使用額度不足 → https://claude.ai"
+            echo "3. 🐛 如問題持續，請將完整錯誤貼到 GitHub Issue"
           fi
           
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo ""
-          echo "::notice::💡 完整的錯誤輸出已摺疊在上方「📋 完整錯誤輸出」區塊中"
+          echo "::notice::💡 完整的 JSON 錯誤輸出已摺疊在「📋 完整錯誤輸出 (JSON)」區塊中"
           
           exit 1
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
 
           # Optional: Add claude_args to customize behavior and configuration
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
