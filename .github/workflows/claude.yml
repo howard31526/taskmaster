@@ -39,7 +39,105 @@ jobs:
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
+        continue-on-error: true
 
+      - name: Analyze Error
+        if: steps.claude.outcome == 'failure'
+        run: |
+          echo "::group::📋 完整錯誤輸出"
+          ERROR_LOG="${{ steps.claude.outputs.error || '' }}"
+          echo "$ERROR_LOG"
+          echo "::endgroup::"
+          
+          echo ""
+          echo "🔍 分析錯誤類型..."
+          echo ""
+          
+          ERROR_TYPE="UNKNOWN"
+          ERROR_DETAIL=""
+          NEXT_STEPS=""
+          RESET_TIME=""
+          
+          # 1. 檢查 Session Limit（最常見的問題）
+          if echo "$ERROR_LOG" | grep -qi "session.limit\|session limit reached\|session limit"; then
+            ERROR_TYPE="SESSION_LIMIT"
+            ERROR_DETAIL="Claude 每日使用額度已達上限"
+            RESET_TIME=$(echo "$ERROR_LOG" | grep -oP "resets \K[0-9]+[ap]m" | head -n1)
+            NEXT_STEPS="
+            1. 前往 https://claude.ai 查看詳細使用狀態
+            2. 等待使用額度重置"
+              if [ -n "$RESET_TIME" ]; then
+                NEXT_STEPS="${NEXT_STEPS}（預計重置時間：$RESET_TIME）"
+              fi
+              NEXT_STEPS="${NEXT_STEPS}
+            3. 或考慮升級到更高方案以獲得更多額度"
+          
+          # 2. 檢查 Rate Limit（API 速率限制）
+          elif echo "$ERROR_LOG" | grep -qi "rate.limit\|rate limit\|429"; then
+            ERROR_TYPE="RATE_LIMIT"
+            ERROR_DETAIL="API 請求速率限制"
+            NEXT_STEPS="
+            1. 這是暫時性的速率限制
+            2. 等待幾分鐘後重試
+            3. 這不是每日額度問題，而是短時間請求過多"
+          
+          # 3. 檢查認證錯誤
+          elif echo "$ERROR_LOG" | grep -qi "unauthorized\|authentication.failed\|invalid.token\|401\|403"; then
+            ERROR_TYPE="AUTHENTICATION"
+            ERROR_DETAIL="
+            1. 檢查 GitHub App 安裝狀態：https://github.com/settings/installations
+            2. 確認「Claude Code」App 已安裝且有權限存取此 repository
+            3. 檢查 repository secrets 中是否有 CLAUDE_CODE_OAUTH_TOKEN
+            4. 如果問題持續，嘗試重新安裝 Claude Code App：
+               - 移除：https://github.com/settings/installations
+               - 重新安裝：從 install-github-app 重新連結 GitHub
+            5. ⚠️ 注意：此 token 由系統自動產生，無法在 claude.ai 手動查看或產生"
+          
+          # 4. 檢查權限錯誤
+          elif echo "$ERROR_LOG" | grep -qi "permission.denied\|forbidden\|not.allowed"; then
+            ERROR_TYPE="PERMISSION"
+            ERROR_DETAIL="權限不足"
+            NEXT_STEPS="1. 檢查 workflow 檔案中的 permissions 設定
+          2. 確認 GitHub token 有足夠權限
+          3. 檢查 repository settings 中的 Actions permissions"
+          
+          # 顯示分類結果
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          
+          if [ "$ERROR_TYPE" != "UNKNOWN" ]; then
+            echo "::error 錯誤類型：$ERROR_TYPE::$ERROR_DETAIL"
+            echo ""
+            echo "**錯誤類型：$ERROR_TYPE**"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo ""
+            echo "**錯誤說明：**"
+            echo "$ERROR_DETAIL"
+            echo ""
+            if [ -n "$RESET_TIME" ]; then
+              echo "⏰ **額度重置時間：** $RESET_TIME"
+              echo ""
+            fi
+            echo "🔧 **建議處理步驟：**"
+            echo "$NEXT_STEPS"
+          else
+            echo "::error 未知錯誤::無法自動分類此錯誤"
+            echo ""
+            echo "⚠️  **無法自動分類此錯誤**"
+            echo ""
+            echo "📋 **建議檢查步驟：**"
+            echo "1. 查看上方「📋 完整錯誤輸出」區塊"
+            echo "2. 前往 https://claude.ai 檢查帳戶狀態（最常見原因是使用額度）"
+            echo "3. 檢查 CLAUDE_CODE_OAUTH_TOKEN 是否有效"
+            echo "4. 如果問題持續，請將錯誤訊息複製到 GitHub Issue"
+          fi
+          
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "::notice::💡 完整的錯誤輸出已摺疊在上方「📋 完整錯誤輸出」區塊中"
+          
+          exit 1
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
 
