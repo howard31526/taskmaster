@@ -239,7 +239,5 @@ jobs:
           echo "::notice::💡 完整的 JSON 錯誤輸出已摺疊在「📋 完整錯誤輸出 (JSON)」區塊中"
           
           exit 1
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
