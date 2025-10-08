@@ -82,7 +82,7 @@ jobs:
             3. 這不是每日額度問題，而是短時間請求過多"
           
           # 3. 檢查認證錯誤
-          elif echo "$ERROR_LOG" | grep -qi "unauthorized\|authentication.failed\|invalid.token\|401\|403"; then
+          elif echo "$ERROR_LOG" | grep -qi "OAuth token revoked\|authentication.failed\|invalid.token\|401\|403"; then
             ERROR_TYPE="AUTHENTICATION"
             ERROR_DETAIL="
             1. 檢查 GitHub App 安裝狀態：https://github.com/settings/installations
