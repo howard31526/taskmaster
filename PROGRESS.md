@@ -32,9 +32,10 @@
   - 驗收條件: 使用現代化配色（淺色/深色主題支援），圓角設計
   - ✅ Commit: `0307f12` - feat: 更新配色方案和樣式為 CustomTkinter 主題系統
 
-- [/] 項目 7: 更新 messagebox 和其他對話框為 CustomTkinter 版本
+- [x] 項目 7: 更新 messagebox 和其他對話框為 CustomTkinter 版本
   - 檔案範圍: task_gui.py (所有使用 messagebox 的方法)
   - 驗收條件: 使用 CTkMessagebox 或 CTkInputDialog 替代原本的 tk.messagebox
+  - ✅ Commit: `0b17116` - feat: 轉換 messagebox 為 CustomTkinter 對話框
 
 - [ ] 項目 8: 測試並優化整體 UI 體驗
   - 檔案範圍: task_gui.py (所有方法)
