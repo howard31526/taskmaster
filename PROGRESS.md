@@ -12,7 +12,7 @@
   - 驗收條件: 主視窗使用 CTk() 而非 tk.Tk()，匯入 customtkinter 套件
   - ✅ Commit: `8240e6b` - feat: 轉換 task_gui.py 基礎匯入和主視窗為 CustomTkinter
 
-- [ ] 項目 3: 更新輸入區域 (create_input_section) 使用 CustomTkinter 元件
+- [/] 項目 3: 更新輸入區域 (create_input_section) 使用 CustomTkinter 元件
   - 檔案範圍: task_gui.py (create_input_section 方法)
   - 驗收條件: 標題輸入、描述輸入、優先級選擇使用 CTkEntry, CTkTextbox, CTkRadioButton
 
