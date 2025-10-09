@@ -96,12 +96,21 @@ class TaskGUI:
 
     def create_task_list_section(self):
         """建立任務列表區域"""
-        list_frame = ttk.LabelFrame(self.window, text="任務列表", padding="10")
+        # 使用 CTkFrame 作為容器
+        list_frame = ctk.CTkFrame(self.window)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
 
-        # 建立 Treeview
+        # 標題標籤
+        title_label = ctk.CTkLabel(list_frame, text="任務列表", font=("Arial", 14, "bold"))
+        title_label.pack(pady=(10, 5), padx=10, anchor="w")
+
+        # 內部容器用於 Treeview
+        tree_container = ctk.CTkFrame(list_frame)
+        tree_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+        # 建立 Treeview (保留原生元件,因為 CustomTkinter 沒有替代品)
         columns = ("title", "description", "priority", "status", "created_at")
-        self.task_listbox = ttk.Treeview(list_frame, columns=columns, show="tree headings",
+        self.task_listbox = ttk.Treeview(tree_container, columns=columns, show="tree headings",
                                         style='Custom.Treeview')
 
         # 設定欄位標題和寬度
@@ -120,7 +129,7 @@ class TaskGUI:
         self.task_listbox.column("created_at", width=150, minwidth=150)
 
         # 滾動條
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.task_listbox.yview)
+        scrollbar = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.task_listbox.yview)
         self.task_listbox.configure(yscrollcommand=scrollbar.set)
 
         # 打包
