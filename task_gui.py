@@ -138,23 +138,23 @@ class TaskGUI:
 
     def create_button_section(self):
         """建立操作按鈕區域"""
-        button_frame = tk.Frame(self.window, bg="#f0f0f0")
+        button_frame = ctk.CTkFrame(self.window, fg_color="transparent")
         button_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
-        # 按鈕樣式
-        button_config = {'font': ('Arial', 10), 'width': 12}
+        # 按鈕配置
+        button_config = {'font': ('Arial', 12), 'width': 120}
 
-        ttk.Button(button_frame, text="標記完成", command=self.complete_task,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="標記完成", command=self.complete_task,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="標記進行中", command=self.mark_in_progress,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="標記進行中", command=self.mark_in_progress,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="刪除任務", command=self.delete_task_gui,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="刪除任務", command=self.delete_task_gui,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="重新整理", command=self.refresh_tasks,
-                   style='Custom.TButton').pack(side=tk.RIGHT)
+        ctk.CTkButton(button_frame, text="重新整理", command=self.refresh_tasks,
+                     **button_config).pack(side=tk.RIGHT)
 
     def add_task_gui(self):
         """新增任務的 GUI 處理"""
