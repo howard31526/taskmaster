@@ -17,7 +17,7 @@ class TaskGUI:
 
         # 設定 CustomTkinter 外觀
         ctk.set_appearance_mode("system")  # 可選: "light", "dark", "system"
-        ctk.set_default_color_theme("blue")  # 可選: "blue", "green", "dark-blue"
+        ctk.set_default_color_theme("dark-blue")  # 使用淡藍色主題
 
         self.window = ctk.CTk()
         self.window.title("TaskMaster - 任務管理系統")
