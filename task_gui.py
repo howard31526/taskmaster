@@ -1,10 +1,142 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 from typing import Optional
+import customtkinter as ctk
 
 from database import DatabaseManager
 from utils import TaskUtils, ValidationUtils, LogUtils
 from config import Config
+
+
+class CTkMessageBox:
+    """CustomTkinter 訊息對話框"""
+
+    @staticmethod
+    def show_error(title: str, message: str):
+        """顯示錯誤訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def show_info(title: str, message: str):
+        """顯示資訊訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def show_warning(title: str, message: str):
+        """顯示警告訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def ask_yes_no(title: str, message: str) -> bool:
+        """顯示是/否確認對話框"""
+        result = {'value': False}
+
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 按鈕框架
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(pady=10)
+
+        def on_yes():
+            result['value'] = True
+            dialog.destroy()
+
+        def on_no():
+            result['value'] = False
+            dialog.destroy()
+
+        # 是/否按鈕
+        yes_button = ctk.CTkButton(button_frame, text="是", command=on_yes, width=80)
+        yes_button.pack(side=tk.LEFT, padx=5)
+
+        no_button = ctk.CTkButton(button_frame, text="否", command=on_no, width=80)
+        no_button.pack(side=tk.LEFT, padx=5)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+        return result['value']
 
 
 class TaskGUI:
@@ -14,33 +146,32 @@ class TaskGUI:
         self.db_manager = db_manager or DatabaseManager(Config.get_database_path())
         self.logger = LogUtils.setup_logger("task_gui")
 
-        self.window = tk.Tk()
+        # 設定 CustomTkinter 外觀
+        ctk.set_appearance_mode("system")  # 可選: "light", "dark", "system"
+        ctk.set_default_color_theme("dark-blue")  # 使用淡藍色主題
+
+        self.window = ctk.CTk()
         self.window.title("TaskMaster - 任務管理系統")
         self.window.geometry("900x700")
-        self.window.configure(bg="#f0f0f0")
 
         self.setup_styles()
         self.create_widgets()
         self.refresh_tasks()
 
     def setup_styles(self):
-        """設定 UI 樣式"""
-        style = ttk.Style()
-        style.theme_use('clam')
-
-        # 配置樣式
-        style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
-        style.configure('Custom.TButton', font=('Arial', 10))
-        style.configure('Custom.Treeview', font=('Arial', 9))
-        style.configure('Custom.Treeview.Heading', font=('Arial', 10, 'bold'))
+        """設定 UI 樣式 - CustomTkinter 自動處理主題和樣式"""
+        # CustomTkinter 使用自己的主題系統，不需要 ttk 樣式配置
+        # 樣式已在 __init__ 中透過 set_appearance_mode 和 set_default_color_theme 設定
+        pass
 
     def create_widgets(self):
         """建立 UI 元件"""
-        # 標題區域
-        title_frame = tk.Frame(self.window, bg="#f0f0f0")
+        # 標題區域 - 使用 CustomTkinter 元件
+        title_frame = ctk.CTkFrame(self.window, fg_color="transparent")
         title_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
 
-        title_label = ttk.Label(title_frame, text="TaskMaster", style='Title.TLabel')
+        title_label = ctk.CTkLabel(title_frame, text="TaskMaster",
+                                   font=("Arial", 20, "bold"))
         title_label.pack(side=tk.LEFT)
 
         # 新增任務區域
@@ -54,46 +185,59 @@ class TaskGUI:
 
     def create_input_section(self):
         """建立輸入區域"""
-        input_frame = ttk.LabelFrame(self.window, text="新增任務", padding="10")
+        input_frame = ctk.CTkFrame(self.window)
         input_frame.pack(fill=tk.X, padx=20, pady=10)
 
+        # 標題標籤
+        title_label = ctk.CTkLabel(input_frame, text="新增任務", font=("Arial", 14, "bold"))
+        title_label.grid(row=0, column=0, columnspan=3, sticky="w", pady=(10, 5), padx=10)
+
         # 標題輸入
-        tk.Label(input_frame, text="任務標題:", font=('Arial', 10)).grid(row=0, column=0, sticky="w", pady=5)
-        self.title_entry = tk.Entry(input_frame, width=50, font=('Arial', 10))
-        self.title_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=5, padx=(10, 0))
+        ctk.CTkLabel(input_frame, text="任務標題:", font=('Arial', 12)).grid(row=1, column=0, sticky="w", pady=5, padx=(10, 5))
+        self.title_entry = ctk.CTkEntry(input_frame, width=400, font=('Arial', 12))
+        self.title_entry.grid(row=1, column=1, columnspan=2, sticky="ew", pady=5, padx=(5, 10))
 
         # 描述輸入
-        tk.Label(input_frame, text="描述:", font=('Arial', 10)).grid(row=1, column=0, sticky="nw", pady=5)
-        self.desc_text = tk.Text(input_frame, width=50, height=4, font=('Arial', 10))
-        self.desc_text.grid(row=1, column=1, columnspan=2, sticky="ew", pady=5, padx=(10, 0))
+        ctk.CTkLabel(input_frame, text="描述:", font=('Arial', 12)).grid(row=2, column=0, sticky="nw", pady=5, padx=(10, 5))
+        self.desc_text = ctk.CTkTextbox(input_frame, width=400, height=100, font=('Arial', 12))
+        self.desc_text.grid(row=2, column=1, columnspan=2, sticky="ew", pady=5, padx=(5, 10))
 
         # 優先級選擇
-        tk.Label(input_frame, text="優先級:", font=('Arial', 10)).grid(row=2, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(input_frame, text="優先級:", font=('Arial', 12)).grid(row=3, column=0, sticky="w", pady=5, padx=(10, 5))
         self.priority_var = tk.StringVar(value="low")
-        priority_frame = tk.Frame(input_frame)
-        priority_frame.grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+        priority_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        priority_frame.grid(row=3, column=1, sticky="w", pady=5, padx=(5, 0))
 
         for priority in ["low", "medium", "high"]:
             priority_text = {"low": "低", "medium": "中", "high": "高"}[priority]
-            tk.Radiobutton(priority_frame, text=priority_text, variable=self.priority_var,
-                          value=priority, font=('Arial', 10)).pack(side=tk.LEFT, padx=(0, 10))
+            ctk.CTkRadioButton(priority_frame, text=priority_text, variable=self.priority_var,
+                              value=priority, font=('Arial', 12)).pack(side=tk.LEFT, padx=(0, 15))
 
         # 新增按鈕
-        add_button = ttk.Button(input_frame, text="新增任務", command=self.add_task_gui,
-                               style='Custom.TButton')
-        add_button.grid(row=2, column=2, pady=5, padx=(10, 0))
+        add_button = ctk.CTkButton(input_frame, text="新增任務", command=self.add_task_gui,
+                                   font=('Arial', 12), width=100)
+        add_button.grid(row=3, column=2, pady=5, padx=(10, 10))
 
         # 設定列權重
         input_frame.columnconfigure(1, weight=1)
 
     def create_task_list_section(self):
         """建立任務列表區域"""
-        list_frame = ttk.LabelFrame(self.window, text="任務列表", padding="10")
+        # 使用 CTkFrame 作為容器
+        list_frame = ctk.CTkFrame(self.window)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
 
-        # 建立 Treeview
+        # 標題標籤
+        title_label = ctk.CTkLabel(list_frame, text="任務列表", font=("Arial", 14, "bold"))
+        title_label.pack(pady=(10, 5), padx=10, anchor="w")
+
+        # 內部容器用於 Treeview
+        tree_container = ctk.CTkFrame(list_frame)
+        tree_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+        # 建立 Treeview (保留原生元件,因為 CustomTkinter 沒有替代品)
         columns = ("title", "description", "priority", "status", "created_at")
-        self.task_listbox = ttk.Treeview(list_frame, columns=columns, show="tree headings",
+        self.task_listbox = ttk.Treeview(tree_container, columns=columns, show="tree headings",
                                         style='Custom.Treeview')
 
         # 設定欄位標題和寬度
@@ -112,7 +256,7 @@ class TaskGUI:
         self.task_listbox.column("created_at", width=150, minwidth=150)
 
         # 滾動條
-        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.task_listbox.yview)
+        scrollbar = ttk.Scrollbar(tree_container, orient=tk.VERTICAL, command=self.task_listbox.yview)
         self.task_listbox.configure(yscrollcommand=scrollbar.set)
 
         # 打包
@@ -121,37 +265,37 @@ class TaskGUI:
 
     def create_button_section(self):
         """建立操作按鈕區域"""
-        button_frame = tk.Frame(self.window, bg="#f0f0f0")
+        button_frame = ctk.CTkFrame(self.window, fg_color="transparent")
         button_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
-        # 按鈕樣式
-        button_config = {'font': ('Arial', 10), 'width': 12}
+        # 按鈕配置
+        button_config = {'font': ('Arial', 12), 'width': 120}
 
-        ttk.Button(button_frame, text="標記完成", command=self.complete_task,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="標記完成", command=self.complete_task,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="標記進行中", command=self.mark_in_progress,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="標記進行中", command=self.mark_in_progress,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="刪除任務", command=self.delete_task_gui,
-                   style='Custom.TButton').pack(side=tk.LEFT, padx=(0, 10))
+        ctk.CTkButton(button_frame, text="刪除任務", command=self.delete_task_gui,
+                     **button_config).pack(side=tk.LEFT, padx=(0, 10))
 
-        ttk.Button(button_frame, text="重新整理", command=self.refresh_tasks,
-                   style='Custom.TButton').pack(side=tk.RIGHT)
+        ctk.CTkButton(button_frame, text="重新整理", command=self.refresh_tasks,
+                     **button_config).pack(side=tk.RIGHT)
 
     def add_task_gui(self):
         """新增任務的 GUI 處理"""
         title = self.title_entry.get().strip()
-        description = self.desc_text.get("1.0", tk.END).strip()
+        description = self.desc_text.get("0.0", "end").strip()
         priority = self.priority_var.get()
 
         # 驗證輸入
         if not ValidationUtils.validate_task_title(title):
-            messagebox.showerror("錯誤", "請輸入有效的任務標題（1-200字元）")
+            CTkMessageBox.show_error("錯誤", "請輸入有效的任務標題（1-200字元）")
             return
 
         if not ValidationUtils.validate_priority(priority):
-            messagebox.showerror("錯誤", "請選擇有效的優先級")
+            CTkMessageBox.show_error("錯誤", "請選擇有效的優先級")
             return
 
         # 清理輸入
@@ -163,14 +307,14 @@ class TaskGUI:
             self.clear_inputs()
             self.refresh_tasks()
             LogUtils.log_action(f"新增任務: {title}")
-            messagebox.showinfo("成功", "任務已成功新增")
+            CTkMessageBox.show_info("成功", "任務已成功新增")
         else:
-            messagebox.showerror("錯誤", "新增任務失敗")
+            CTkMessageBox.show_error("錯誤", "新增任務失敗")
 
     def clear_inputs(self):
         """清空輸入欄位"""
-        self.title_entry.delete(0, tk.END)
-        self.desc_text.delete("1.0", tk.END)
+        self.title_entry.delete(0, "end")
+        self.desc_text.delete("0.0", "end")
         self.priority_var.set("low")
 
     def get_selected_task_id(self) -> Optional[int]:
@@ -188,42 +332,42 @@ class TaskGUI:
         """標記任務為完成"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
         if self.db_manager.update_task_status(task_id, "completed"):
             self.refresh_tasks()
             LogUtils.log_action(f"任務 {task_id} 標記為完成")
         else:
-            messagebox.showerror("錯誤", "更新任務狀態失敗")
+            CTkMessageBox.show_error("錯誤", "更新任務狀態失敗")
 
     def mark_in_progress(self):
         """標記任務為進行中"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
         if self.db_manager.update_task_status(task_id, "in_progress"):
             self.refresh_tasks()
             LogUtils.log_action(f"任務 {task_id} 標記為進行中")
         else:
-            messagebox.showerror("錯誤", "更新任務狀態失敗")
+            CTkMessageBox.show_error("錯誤", "更新任務狀態失敗")
 
     def delete_task_gui(self):
         """刪除任務的 GUI 處理"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
-        if messagebox.askyesno("確認", "確定要刪除這個任務嗎？"):
+        if CTkMessageBox.ask_yes_no("確認", "確定要刪除這個任務嗎？"):
             if self.db_manager.delete_task(task_id):
                 self.refresh_tasks()
                 LogUtils.log_action(f"刪除任務 {task_id}")
-                messagebox.showinfo("成功", "任務已刪除")
+                CTkMessageBox.show_info("成功", "任務已刪除")
             else:
-                messagebox.showerror("錯誤", "刪除任務失敗")
+                CTkMessageBox.show_error("錯誤", "刪除任務失敗")
 
     def refresh_tasks(self):
         """重新整理任務列表"""
@@ -254,7 +398,7 @@ class TaskGUI:
             self.window.mainloop()
         except Exception as e:
             LogUtils.log_action(f"GUI 錯誤: {e}")
-            messagebox.showerror("錯誤", f"應用程式錯誤: {e}")
+            CTkMessageBox.show_error("錯誤", f"應用程式錯誤: {e}")
 
 
 def main():
