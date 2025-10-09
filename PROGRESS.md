@@ -22,9 +22,10 @@
   - 驗收條件: 任務列表使用 CTkScrollableFrame 或保留 Treeview 但搭配 CTk 風格
   - ✅ Commit: `f08e4f0` - feat: 轉換任務列表區域為 CustomTkinter 風格
 
-- [/] 項目 5: 更新操作按鈕區域 (create_button_section) 使用 CTkButton
+- [x] 項目 5: 更新操作按鈕區域 (create_button_section) 使用 CTkButton
   - 檔案範圍: task_gui.py (create_button_section 方法)
   - 驗收條件: 所有按鈕使用 CTkButton 元件
+  - ✅ Commit: `73eefd9` - feat: 轉換操作按鈕區域為 CustomTkinter 元件
 
 - [ ] 項目 6: 更新配色方案和樣式，參考現代化設計
   - 檔案範圍: task_gui.py (setup_styles 和 __init__ 方法)
