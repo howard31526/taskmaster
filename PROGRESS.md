@@ -7,9 +7,10 @@
   - 驗收條件: requirements.txt 包含 customtkinter 套件
   - ✅ Commit: `46b1b3a` - feat: 新增 customtkinter 依賴套件
 
-- [ ] 項目 2: 轉換 task_gui.py 的基礎匯入和主視窗設定為 CustomTkinter
+- [x] 項目 2: 轉換 task_gui.py 的基礎匯入和主視窗設定為 CustomTkinter
   - 檔案範圍: task_gui.py
   - 驗收條件: 主視窗使用 CTk() 而非 tk.Tk()，匯入 customtkinter 套件
+  - ✅ Commit: `8240e6b` - feat: 轉換 task_gui.py 基礎匯入和主視窗為 CustomTkinter
 
 - [ ] 項目 3: 更新輸入區域 (create_input_section) 使用 CustomTkinter 元件
   - 檔案範圍: task_gui.py (create_input_section 方法)
