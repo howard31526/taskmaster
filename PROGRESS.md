@@ -27,9 +27,10 @@
   - 驗收條件: 所有按鈕使用 CTkButton 元件
   - ✅ Commit: `73eefd9` - feat: 轉換操作按鈕區域為 CustomTkinter 元件
 
-- [/] 項目 6: 更新配色方案和樣式，參考現代化設計
+- [x] 項目 6: 更新配色方案和樣式，參考現代化設計
   - 檔案範圍: task_gui.py (setup_styles 和 __init__ 方法)
   - 驗收條件: 使用現代化配色（淺色/深色主題支援），圓角設計
+  - ✅ Commit: `0307f12` - feat: 更新配色方案和樣式為 CustomTkinter 主題系統
 
 - [ ] 項目 7: 更新 messagebox 和其他對話框為 CustomTkinter 版本
   - 檔案範圍: task_gui.py (所有使用 messagebox 的方法)
