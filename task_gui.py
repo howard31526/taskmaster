@@ -1,11 +1,142 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk
 from typing import Optional
 import customtkinter as ctk
 
 from database import DatabaseManager
 from utils import TaskUtils, ValidationUtils, LogUtils
 from config import Config
+
+
+class CTkMessageBox:
+    """CustomTkinter 訊息對話框"""
+
+    @staticmethod
+    def show_error(title: str, message: str):
+        """顯示錯誤訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def show_info(title: str, message: str):
+        """顯示資訊訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def show_warning(title: str, message: str):
+        """顯示警告訊息"""
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 確定按鈕
+        button = ctk.CTkButton(dialog, text="確定", command=dialog.destroy, width=100)
+        button.pack(pady=10)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+    @staticmethod
+    def ask_yes_no(title: str, message: str) -> bool:
+        """顯示是/否確認對話框"""
+        result = {'value': False}
+
+        dialog = ctk.CTkToplevel()
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.resizable(False, False)
+
+        # 置中視窗
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (150 // 2)
+        dialog.geometry(f"400x150+{x}+{y}")
+
+        # 訊息標籤
+        label = ctk.CTkLabel(dialog, text=message, wraplength=350, font=("Arial", 12))
+        label.pack(pady=20, padx=20)
+
+        # 按鈕框架
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(pady=10)
+
+        def on_yes():
+            result['value'] = True
+            dialog.destroy()
+
+        def on_no():
+            result['value'] = False
+            dialog.destroy()
+
+        # 是/否按鈕
+        yes_button = ctk.CTkButton(button_frame, text="是", command=on_yes, width=80)
+        yes_button.pack(side=tk.LEFT, padx=5)
+
+        no_button = ctk.CTkButton(button_frame, text="否", command=on_no, width=80)
+        no_button.pack(side=tk.LEFT, padx=5)
+
+        dialog.transient()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+
+        return result['value']
 
 
 class TaskGUI:
@@ -160,11 +291,11 @@ class TaskGUI:
 
         # 驗證輸入
         if not ValidationUtils.validate_task_title(title):
-            messagebox.showerror("錯誤", "請輸入有效的任務標題（1-200字元）")
+            CTkMessageBox.show_error("錯誤", "請輸入有效的任務標題（1-200字元）")
             return
 
         if not ValidationUtils.validate_priority(priority):
-            messagebox.showerror("錯誤", "請選擇有效的優先級")
+            CTkMessageBox.show_error("錯誤", "請選擇有效的優先級")
             return
 
         # 清理輸入
@@ -176,9 +307,9 @@ class TaskGUI:
             self.clear_inputs()
             self.refresh_tasks()
             LogUtils.log_action(f"新增任務: {title}")
-            messagebox.showinfo("成功", "任務已成功新增")
+            CTkMessageBox.show_info("成功", "任務已成功新增")
         else:
-            messagebox.showerror("錯誤", "新增任務失敗")
+            CTkMessageBox.show_error("錯誤", "新增任務失敗")
 
     def clear_inputs(self):
         """清空輸入欄位"""
@@ -201,42 +332,42 @@ class TaskGUI:
         """標記任務為完成"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
         if self.db_manager.update_task_status(task_id, "completed"):
             self.refresh_tasks()
             LogUtils.log_action(f"任務 {task_id} 標記為完成")
         else:
-            messagebox.showerror("錯誤", "更新任務狀態失敗")
+            CTkMessageBox.show_error("錯誤", "更新任務狀態失敗")
 
     def mark_in_progress(self):
         """標記任務為進行中"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
         if self.db_manager.update_task_status(task_id, "in_progress"):
             self.refresh_tasks()
             LogUtils.log_action(f"任務 {task_id} 標記為進行中")
         else:
-            messagebox.showerror("錯誤", "更新任務狀態失敗")
+            CTkMessageBox.show_error("錯誤", "更新任務狀態失敗")
 
     def delete_task_gui(self):
         """刪除任務的 GUI 處理"""
         task_id = self.get_selected_task_id()
         if task_id is None:
-            messagebox.showwarning("警告", "請選擇一個任務")
+            CTkMessageBox.show_warning("警告", "請選擇一個任務")
             return
 
-        if messagebox.askyesno("確認", "確定要刪除這個任務嗎？"):
+        if CTkMessageBox.ask_yes_no("確認", "確定要刪除這個任務嗎？"):
             if self.db_manager.delete_task(task_id):
                 self.refresh_tasks()
                 LogUtils.log_action(f"刪除任務 {task_id}")
-                messagebox.showinfo("成功", "任務已刪除")
+                CTkMessageBox.show_info("成功", "任務已刪除")
             else:
-                messagebox.showerror("錯誤", "刪除任務失敗")
+                CTkMessageBox.show_error("錯誤", "刪除任務失敗")
 
     def refresh_tasks(self):
         """重新整理任務列表"""
@@ -267,7 +398,7 @@ class TaskGUI:
             self.window.mainloop()
         except Exception as e:
             LogUtils.log_action(f"GUI 錯誤: {e}")
-            messagebox.showerror("錯誤", f"應用程式錯誤: {e}")
+            CTkMessageBox.show_error("錯誤", f"應用程式錯誤: {e}")
 
 
 def main():
