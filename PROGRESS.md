@@ -17,9 +17,10 @@
   - 驗收條件: 標題輸入、描述輸入、優先級選擇使用 CTkEntry, CTkTextbox, CTkRadioButton
   - ✅ Commit: `202cee7` - feat: 轉換輸入區域為 CustomTkinter 元件
 
-- [/] 項目 4: 更新任務列表區域 (create_task_list_section) 使用 CustomTkinter 風格
+- [x] 項目 4: 更新任務列表區域 (create_task_list_section) 使用 CustomTkinter 風格
   - 檔案範圍: task_gui.py (create_task_list_section 方法)
   - 驗收條件: 任務列表使用 CTkScrollableFrame 或保留 Treeview 但搭配 CTk 風格
+  - ✅ Commit: `f08e4f0` - feat: 轉換任務列表區域為 CustomTkinter 風格
 
 - [ ] 項目 5: 更新操作按鈕區域 (create_button_section) 使用 CTkButton
   - 檔案範圍: task_gui.py (create_button_section 方法)
