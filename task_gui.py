@@ -286,7 +286,7 @@ class TaskGUI:
     def add_task_gui(self):
         """新增任務的 GUI 處理"""
         title = self.title_entry.get().strip()
-        description = self.desc_text.get("1.0", tk.END).strip()
+        description = self.desc_text.get("0.0", "end").strip()
         priority = self.priority_var.get()
 
         # 驗證輸入
@@ -313,8 +313,8 @@ class TaskGUI:
 
     def clear_inputs(self):
         """清空輸入欄位"""
-        self.title_entry.delete(0, tk.END)
-        self.desc_text.delete("1.0", tk.END)
+        self.title_entry.delete(0, "end")
+        self.desc_text.delete("0.0", "end")
         self.priority_var.set("low")
 
     def get_selected_task_id(self) -> Optional[int]:

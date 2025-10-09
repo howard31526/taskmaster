@@ -37,9 +37,12 @@
   - 驗收條件: 使用 CTkMessagebox 或 CTkInputDialog 替代原本的 tk.messagebox
   - ✅ Commit: `0b17116` - feat: 轉換 messagebox 為 CustomTkinter 對話框
 
-- [ ] 項目 8: 測試並優化整體 UI 體驗
+- [/] 項目 8: 測試並優化整體 UI 體驗
   - 檔案範圍: task_gui.py (所有方法)
   - 驗收條件: GUI 可正常啟動且所有功能運作正常，視覺效果符合現代化設計
+  - 修復項目:
+    - ✅ 修正 CTkTextbox API 使用 (line 289, 317)
+    - ✅ 統一使用小寫 "end" 參數 (line 316)
 
 ## 狀態說明
 - [ ] 未開始
