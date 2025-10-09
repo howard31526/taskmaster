@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from typing import Optional
+import customtkinter as ctk
 
 from database import DatabaseManager
 from utils import TaskUtils, ValidationUtils, LogUtils
@@ -14,10 +15,13 @@ class TaskGUI:
         self.db_manager = db_manager or DatabaseManager(Config.get_database_path())
         self.logger = LogUtils.setup_logger("task_gui")
 
-        self.window = tk.Tk()
+        # 設定 CustomTkinter 外觀
+        ctk.set_appearance_mode("system")  # 可選: "light", "dark", "system"
+        ctk.set_default_color_theme("blue")  # 可選: "blue", "green", "dark-blue"
+
+        self.window = ctk.CTk()
         self.window.title("TaskMaster - 任務管理系統")
         self.window.geometry("900x700")
-        self.window.configure(bg="#f0f0f0")
 
         self.setup_styles()
         self.create_widgets()
