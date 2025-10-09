@@ -2,8 +2,8 @@
 # Web 介面所需
 Flask>=2.3.0
 
-# GUI 介面所需 (通常內建)
-# tkinter  # 內建模組，不需要在 requirements.txt 中列出
+# GUI 介面所需
+customtkinter>=5.2.0
 
 # 工具和開發所需
 requests>=2.28.0
