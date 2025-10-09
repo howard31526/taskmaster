@@ -58,34 +58,38 @@ class TaskGUI:
 
     def create_input_section(self):
         """建立輸入區域"""
-        input_frame = ttk.LabelFrame(self.window, text="新增任務", padding="10")
+        input_frame = ctk.CTkFrame(self.window)
         input_frame.pack(fill=tk.X, padx=20, pady=10)
 
+        # 標題標籤
+        title_label = ctk.CTkLabel(input_frame, text="新增任務", font=("Arial", 14, "bold"))
+        title_label.grid(row=0, column=0, columnspan=3, sticky="w", pady=(10, 5), padx=10)
+
         # 標題輸入
-        tk.Label(input_frame, text="任務標題:", font=('Arial', 10)).grid(row=0, column=0, sticky="w", pady=5)
-        self.title_entry = tk.Entry(input_frame, width=50, font=('Arial', 10))
-        self.title_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=5, padx=(10, 0))
+        ctk.CTkLabel(input_frame, text="任務標題:", font=('Arial', 12)).grid(row=1, column=0, sticky="w", pady=5, padx=(10, 5))
+        self.title_entry = ctk.CTkEntry(input_frame, width=400, font=('Arial', 12))
+        self.title_entry.grid(row=1, column=1, columnspan=2, sticky="ew", pady=5, padx=(5, 10))
 
         # 描述輸入
-        tk.Label(input_frame, text="描述:", font=('Arial', 10)).grid(row=1, column=0, sticky="nw", pady=5)
-        self.desc_text = tk.Text(input_frame, width=50, height=4, font=('Arial', 10))
-        self.desc_text.grid(row=1, column=1, columnspan=2, sticky="ew", pady=5, padx=(10, 0))
+        ctk.CTkLabel(input_frame, text="描述:", font=('Arial', 12)).grid(row=2, column=0, sticky="nw", pady=5, padx=(10, 5))
+        self.desc_text = ctk.CTkTextbox(input_frame, width=400, height=100, font=('Arial', 12))
+        self.desc_text.grid(row=2, column=1, columnspan=2, sticky="ew", pady=5, padx=(5, 10))
 
         # 優先級選擇
-        tk.Label(input_frame, text="優先級:", font=('Arial', 10)).grid(row=2, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(input_frame, text="優先級:", font=('Arial', 12)).grid(row=3, column=0, sticky="w", pady=5, padx=(10, 5))
         self.priority_var = tk.StringVar(value="low")
-        priority_frame = tk.Frame(input_frame)
-        priority_frame.grid(row=2, column=1, sticky="w", pady=5, padx=(10, 0))
+        priority_frame = ctk.CTkFrame(input_frame, fg_color="transparent")
+        priority_frame.grid(row=3, column=1, sticky="w", pady=5, padx=(5, 0))
 
         for priority in ["low", "medium", "high"]:
             priority_text = {"low": "低", "medium": "中", "high": "高"}[priority]
-            tk.Radiobutton(priority_frame, text=priority_text, variable=self.priority_var,
-                          value=priority, font=('Arial', 10)).pack(side=tk.LEFT, padx=(0, 10))
+            ctk.CTkRadioButton(priority_frame, text=priority_text, variable=self.priority_var,
+                              value=priority, font=('Arial', 12)).pack(side=tk.LEFT, padx=(0, 15))
 
         # 新增按鈕
-        add_button = ttk.Button(input_frame, text="新增任務", command=self.add_task_gui,
-                               style='Custom.TButton')
-        add_button.grid(row=2, column=2, pady=5, padx=(10, 0))
+        add_button = ctk.CTkButton(input_frame, text="新增任務", command=self.add_task_gui,
+                                   font=('Arial', 12), width=100)
+        add_button.grid(row=3, column=2, pady=5, padx=(10, 10))
 
         # 設定列權重
         input_frame.columnconfigure(1, weight=1)
