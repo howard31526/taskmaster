@@ -28,23 +28,19 @@ class TaskGUI:
         self.refresh_tasks()
 
     def setup_styles(self):
-        """設定 UI 樣式"""
-        style = ttk.Style()
-        style.theme_use('clam')
-
-        # 配置樣式
-        style.configure('Title.TLabel', font=('Arial', 16, 'bold'))
-        style.configure('Custom.TButton', font=('Arial', 10))
-        style.configure('Custom.Treeview', font=('Arial', 9))
-        style.configure('Custom.Treeview.Heading', font=('Arial', 10, 'bold'))
+        """設定 UI 樣式 - CustomTkinter 自動處理主題和樣式"""
+        # CustomTkinter 使用自己的主題系統，不需要 ttk 樣式配置
+        # 樣式已在 __init__ 中透過 set_appearance_mode 和 set_default_color_theme 設定
+        pass
 
     def create_widgets(self):
         """建立 UI 元件"""
-        # 標題區域
-        title_frame = tk.Frame(self.window, bg="#f0f0f0")
+        # 標題區域 - 使用 CustomTkinter 元件
+        title_frame = ctk.CTkFrame(self.window, fg_color="transparent")
         title_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
 
-        title_label = ttk.Label(title_frame, text="TaskMaster", style='Title.TLabel')
+        title_label = ctk.CTkLabel(title_frame, text="TaskMaster",
+                                   font=("Arial", 20, "bold"))
         title_label.pack(side=tk.LEFT)
 
         # 新增任務區域
