@@ -1,9 +1,9 @@
 # TaskMaster - 個人任務管理系統
 
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-一個功能完整的任務管理應用程式，提供桌面 GUI 介面和 RESTful API 服務，讓您輕鬆管理日常任務。
+一個功能完整的任務管理應用程式，提供桌面 GUI 介面和 RESTful API 服務，讓您輕鬆管理日常任務。支援多種啟動模式，並包含完整的資料備份功能。
 
 ## 目錄
 
@@ -47,7 +47,7 @@
 
 ## 系統需求
 
-- **Python**：3.10 或更高版本
+- **Python**：3.11 或更高版本（建議使用 3.11.8 或以上）
 - **作業系統**：Windows、macOS、Linux
 - **依賴套件**：
   - Flask >= 2.3.0 (Web API)
@@ -292,6 +292,15 @@ CREATE TABLE tasks (
 - 適當添加註解和文件字串
 - 建議使用 `black` 進行程式碼格式化
 
+### Git 工作流程
+
+本專案使用特定的 Git 工作流程：
+- **禁止直接使用 `git merge`**：所有分支合併必須透過 `/branch-merge` 指令
+- **標準化提交流程**：使用 `/pack-zh` 指令進行提交
+- **自動修復流程**：使用 `/auto-fix` 指令處理問題修復
+
+詳細的工作流程請參閱 [CLAUDE.md](CLAUDE.md)。
+
 ## 測試
 
 ### 執行測試
@@ -368,4 +377,4 @@ python test.py
 ---
 
 **開發版本**：1.0.0
-**最後更新**：2025-10-07
+**最後更新**：2025-10-13
