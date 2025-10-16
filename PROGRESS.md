@@ -2,9 +2,10 @@
 
 ## 規劃項目 (最小可交付粒度)
 
-- [/] 項目 1: 新增 CustomTkinter 依賴套件
+- [x] 項目 1: 新增 CustomTkinter 依賴套件
   - 檔案範圍: requirements.txt
   - 驗收條件: requirements.txt 包含 customtkinter 套件
+  - ✅ Commit: `1073a56` - feat: 新增 customtkinter 依賴套件
 
 - [ ] 項目 2: 更新 task_gui.py 的基礎架構 - 導入和主視窗設定
   - 檔案範圍: task_gui.py
