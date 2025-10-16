@@ -52,7 +52,8 @@ description: 逐步執行版本的 auto-fix (GitHub Actions 專用,每次只執�
   ```
 - 將生成的 PROGRESS.md 寫入檔案
 - 執行 git add, commit, push
-- 提示使用者:「PROGRESS.md 已創建,請再次執行 /auto-fix-step 開始實作第一個項目」
+- 並建立 PR 動作
+- 提示使用者:「PROGRESS.md 已創建,請至PR動作中再次執行 /auto-fix-step 開始實作第一個項目」
 - **結束執行** (不繼續執行項目)
 
 ### 第二步:執行單一項目
